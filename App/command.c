@@ -125,7 +125,8 @@ STRING* parse_or(STRING line){
 
 command* parse_line(STRING line){
     STRING* tokens = string_tokenizer(line,"|");
-	int total = size, i;
+    int total = size; //, //i;
+    int i;
 	command* commands = malloc((total + 1)* sizeof(command));
 	
 	for(i = 0; i < total; i++) {       
@@ -134,7 +135,6 @@ command* parse_line(STRING line){
 	}
 	commands[i - 1].end_line = 1;
 	commands[i].name = NULL;
-
 	return commands;
 
 }
@@ -144,7 +144,8 @@ void myhandler(int signum){
     //kill(getpid(),SIGKILL);  
 }
 
-void calling_execute(STRING line){   
+void calling_execute(STRING line){
+
     STRING* inits=parse_init(line);//"#" "\n" ";"
     while (*inits!=NULL){
             
@@ -157,11 +158,12 @@ void calling_execute(STRING line){
         //     while (*ors!=NULL){
         command* commands =parse_line(*inits); 
         //         int fd=-1;
-                
+        int fd =-1;
         while (commands->name){
-            int fd =-1;    
+
             fd=execute_command(*commands,fd,&out_status);
-            commands++;            
+            commands++; 
+                       
             // }
             // if(out_status == 0) break;                   
             // ors++;
@@ -191,8 +193,8 @@ int execute_command(command command,int _fd,int *exit_status){
 
 	//pipe(fds);
      /* Create the pipe. */
-    if (pipe (fds))
-    {
+    if (pipe (fds)){
+    
       fprintf(stderr, "Pipe failed.\n");
       return EXIT_FAILURE;
     }
@@ -200,7 +202,10 @@ int execute_command(command command,int _fd,int *exit_status){
     if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
         
 		close(fds[1]);
-        if(command.cant_args != 2) { printf("bash: cd: to many arguments\n"); *exit_status=1;} // si existen mas de 2 argumentos imprimir error
+        if(command.cant_args != 2) { // si existen mas de 2 argumentos imprimir error 
+            printf("bash: cd: to many arguments\n"); 
+            *exit_status=1;
+        } 
         else if(chdir(command.args[1])) {            
             perror("cd"); 
             *exit_status=1;

@@ -1,10 +1,10 @@
-ls
+ls -l | head -2
+ls -l | head -2
+ls -l | head -2
+ls -l | head -2
+ls -l | head -2
+ls -l | head -2
+ls -l
+history
+again 1
 exit
-ls
-ls
-ls
-ls
-ls
-ls
-ls -l
-ls -l
