@@ -1,0 +1,40 @@
+Bugs arreglados en esta version:
+->correcto parseo de && || que con strtok daba problemas
+->bugs menores corregidos
+->el history y el again funcionan correctamente
+->
+
+pipe multiples
+history --> + 10 lines falta por ver como se hace
+again ---> ya corregido
+funciona && ; || asi como true false
+no parentesis porque implicaria complicacion en el parser
+
+
+keywords:
+basic  -->good
+chain -->good
+ctrlc + c -mas o menos realmente hay que mejorarlo no me convence lo que tengo hecho
+history - mejorable
+spaces --> good
+
+faltan por implementar:
+background
+if
+multi if
+help ojo es un 1pto por algo sencillo
+variables
+
+
+puntos:
+basic +3
+spaces +0.5
+history +0.5
+multi-pipe +1
+chain +0.5
+
+
+
+
+
+

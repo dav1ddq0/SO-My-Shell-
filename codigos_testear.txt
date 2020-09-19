@@ -1,0 +1,4 @@
+ls -l | head -2 |wc -l
+cat o.txt | head -2 && free
+ls && free ; ls -1 | head -2 && cat o.txt
+ls && free

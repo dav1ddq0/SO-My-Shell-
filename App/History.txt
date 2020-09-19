@@ -1,0 +1,10 @@
+ls
+exit
+ls
+ls
+ls
+ls
+ls
+ls
+ls -l
+ls -l
