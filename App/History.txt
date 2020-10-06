@@ -1,10 +1,10 @@
-ls
-ls -l
-ls -l | head -2 | wc -l
-ls -l
 ls -l | head -2 | wc -l > t.txt
 cat t.txt
 help
 help ls
 man ls -l
 help
+ls -l && ls -l | head -2 | wc -l > test.txt
+catest.txt
+ls
+cat test.txt
