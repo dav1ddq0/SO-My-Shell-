@@ -73,12 +73,27 @@ STRING* parser (STRING chain,const char* separator){
             
             //printf("%ld\n",strlen(str));
             //result[posIO][posIO]=tokens[i];
+        }else
+        {
+
+            result[posIO]=malloc(sizeof(t));
+            
+            strcpy(result[posIO],t);
+            free(t);
+            t="";
+            posIO++;
         }
         
         
         
+        
     }
-    printf("%s",t);
+    result[posIO]=malloc(sizeof(t));          
+    strcpy(result[posIO],t);
+    free(t);
+    posIO++;
+    result[posIO]=NULL;
+    //printf("%s",t);
 
     
 
@@ -87,7 +102,7 @@ STRING* parser (STRING chain,const char* separator){
     //     printf("%s",*tokens);
     //     tokens++;
     // }
-    return tokens;
+    return result;
     // int final=0
     // int init=0;
     // int final=0;
@@ -220,37 +235,32 @@ void calling_execute(STRING line){
     STRING* inits=parse_init(line);// ignore "#" "\n" and split with ";"
     while (*inits!=NULL){
     
-        STRING* ands = parse_and(*inits); // "&&"
-        while (*ands!=NULL)
-        {
-            //printf("%s\n",*ands);
-            ands++;
-        }
+        STRING* ands = parse_and(*inits); // "&&" 
         
-        
-        // int out_status=-2;
-        // while (*ands !=NULL){
-        // int out_status;
-        // STRING* ors=parse_or(*ands); // "||"
+        int out_status=-2;
+        while (*ands !=NULL){
+        //int out_status;
+        STRING* ors=parse_or(*ands); // "||"
             
-        // while (*ors!=NULL){
-        //     command* commands =parse_line(*ors); 
-        // //         int fd=-1;
-        //     int fd =-1;
-        //     while (commands->name){
+        while (*ors!=NULL){
+            command* commands =parse_line(*ors); 
+        //         int fd=-1;
+            int fd =-1;
+            while (commands->name){
 
-        //     fd=execute_command(*commands,fd,&out_status);
-        //     commands++; 
-        //     }               
-        //     // }
-        //     if(out_status == 0) break;                   
-        //     ors++;
-        // }
-        //     if(out_status != 0) break;
-        //     ands++;
+            fd=execute_command(*commands,fd,&out_status);
+            commands++; 
+            }               
+            // }
+            if(out_status == 0) break;                   
+            ors++;
+        }
+            if(out_status != 0) break;
+            ands++;
         
-            inits++;
-        //}
+        
+        }
+        inits++;
     } 
 }
 

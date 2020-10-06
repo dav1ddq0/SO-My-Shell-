@@ -2,9 +2,9 @@ ls
 ls
 ls
 ls
-ls
-ls
-ls
-ls
 ls -l
-ls    -l help && help
+ls -l && ls 
+ls
+ls -l && ls -l
+ls -l || ls -l
+ls -l | head -2 && ls -l && echo "Hola"
