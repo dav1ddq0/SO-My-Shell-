@@ -1,10 +1,10 @@
 ls
 ls -l
-ls -l && ls 
-ls
-ls -l && ls -l
-ls -l || ls -l
-ls -l | head -2 && ls -l && echo "Hola"
-ls -l || help
-opop || help
-llll || ls -l
+ls -l | head -2 | wc -l
+ls -l
+ls -l | head -2 | wc -l > t.txt
+cat t.txt
+help
+help ls
+man ls -l
+help

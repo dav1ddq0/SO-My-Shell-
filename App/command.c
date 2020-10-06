@@ -4,6 +4,7 @@ bool first_time_history_checked = TRUE;
 int history_size;
 int size;
 int bg;
+int mega=0;
 
 command init_command(STRING name,int cant_args,STRING* args){
     command new_command;
@@ -36,32 +37,10 @@ STRING concatStr(STRING str1,STRING str2){
 //parser para los casos que no puedo resolver con strtok ,|| y &&
 STRING* parser (STRING chain,const char* separator){
     STRING* tokens =string_tokenizer(chain," ");
-    STRING* result =malloc(sizeof(tokens)*2);
-    int sizeSeparetor=0;
-    
-    
-    for(int i = 0;tokens[i]!= NULL; i++) {
-        if(!strcmp(tokens[i],separator)){
-            //printf("%s",tokens[i]);
-            sizeSeparetor++;
-        }
-    }
+    size_t siz=2;
+    STRING* result =malloc(siz*sizeof(char*));
 
-
-    unsigned long sizeToken[sizeSeparetor+1];
-    
-    int posSizeToken=0;
-    for(int i = 0;tokens[i]!= NULL; i++) {
-        sizeToken[posSizeToken]=sizeof(tokens[i]);
-        if(!strcmp(tokens[i],separator)){
-            posSizeToken++;
-        }
-    }
-    for(int i = 0;i<=sizeSeparetor+1;i++){
-        result[i]=malloc(sizeof(sizeToken[i]*2+1));//duplico la cantidad de espacios y le pongo un null terminator
-    }
-    int posIO=0;//cada string que estara guardado en result
-    int posIO2=0;//
+    int index =0;
     STRING t="";
     for(int i = 0;tokens[i]!= NULL; i++) {
         if(strcmp(tokens[i],separator)){
@@ -70,29 +49,27 @@ STRING* parser (STRING chain,const char* separator){
             t=concatStr(t,str);
         }
         else{
-            result[posIO]=malloc(sizeof(t));   
-            strcpy(result[posIO],t);
-            free(t);
+            result[index++]=t;
             t="";
-            posIO++;
+            
+            if(index==siz){
+                siz*=2;
+                result=realloc(result,(siz)*sizeof(char*));
+            }      
+            
         }
         
     }    
-        
-        
-    
-    result[posIO]=malloc(sizeof(t));          
-    strcpy(result[posIO],t);
-    free(t);
-    posIO++;
-    result[posIO]=NULL;
+
+    result[index++]=t;
+    result[index]=NULL;
     
     return result;
 }
 
 STRING* string_tokenizer(STRING line,const char* separator){
     size_t siz = 2;
-    STRING* tokens = malloc((siz + 1) * sizeof(char*));
+    STRING* tokens = malloc(siz*sizeof(char));
     STRING token;
     int index = 0;
     token = strtok(line, separator);// The first call to strtok must pass the C string to tokenize
@@ -100,7 +77,7 @@ STRING* string_tokenizer(STRING line,const char* separator){
 		
         if(index == siz) {
     		siz *=2;
-    		tokens = realloc(tokens, (siz + 1) * sizeof(char*)); 
+    		tokens = realloc(tokens, (siz) * sizeof(char*)); 
     	}
         tokens[index++] = token;
         if(!strcmp(separator,"#") || !strcmp(separator,"\n")){
@@ -110,6 +87,7 @@ STRING* string_tokenizer(STRING line,const char* separator){
         
         //subsequent calls must specify NULL as the first argument, which tells the function to continue tokenizing the string you passed in first        
         token = strtok(NULL, separator);
+        mega++;
     }
     
     tokens[index] = NULL;//NULL terminator
@@ -133,6 +111,7 @@ STRING* parse_or(STRING line){
 }
 
 command* parse_line(STRING line){
+    //printf("%s",line);
     STRING* tokens = string_tokenizer(line,"|");
     int total = size; //, //i;
     int i;
@@ -145,12 +124,13 @@ command* parse_line(STRING line){
 	commands[i - 1].end_line = 1;
 	commands[i].name = NULL;
 	return commands;
+    return NULL;
 
 }
 void myhandler(int signum){
-    if(signum==SIGUSR1){
-    kill(getpid(),SIGKILL);
-    }
+    // if(signum==SIGUSR1){
+    // kill(getpid(),SIGKILL);
+    // }
 }
 
 void calling_execute(STRING line){
@@ -158,30 +138,26 @@ void calling_execute(STRING line){
     STRING* inits=parse_init(line);// ignore "#" "\n" and split with ";"
     while (*inits!=NULL){
     
-        STRING* ands = parse_and(*inits); // "&&" 
+        STRING* ands = parse_and(*inits); // split "&&" 
         
         int out_status=-2;
         while (*ands !=NULL){
-        //int out_status;
-        STRING* ors=parse_or(*ands); // "||"
+        STRING* ors=parse_or(*ands); // split "||"
             
         while (*ors!=NULL){
             command* commands =parse_line(*ors); 
-        //         int fd=-1;
             int fd =-1;
             while (commands->name){
-
-            fd=execute_command(*commands,fd,&out_status);
-            commands++; 
-            }               
-            // }
+                fd=execute_command(*commands,fd,&out_status);
+                commands++; 
+            }
             if(out_status == 0) break;                   
-            ors++;
-        }
+            ors++;               
+            }
+            
+        
             if(out_status != 0) break;
             ands++;
-        
-
         }
         inits++;
     } 

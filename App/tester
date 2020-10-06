@@ -1,0 +1,3 @@
+ls -l | head -2 | wc -l
+ls -l || ls -l || ls -l || ls -l || ls -l || ls -l || ls -l || ls -l || -ls
+ls -l | head -2 | wc -l > t.txt
