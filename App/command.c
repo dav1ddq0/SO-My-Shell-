@@ -1,4 +1,3 @@
- 
 #include "command.h"
 
 bool first_time_history_checked = TRUE;
@@ -16,69 +15,141 @@ command init_command(STRING name,int cant_args,STRING* args){
     return new_command; 
 }
 
+STRING concatStr(STRING str1,STRING str2){
+    unsigned long size1=strlen(str1)*sizeof(char);
+    unsigned long size2=strlen(str2)*sizeof(char);
+    STRING concat=malloc((size1+size2)*2);
+    int concatPos=0;
+    for(int i=0;i<size1;i++){
+        concat[concatPos++]=str1[i];
+        
+    }
+    concat[concatPos++]=' ';
+    for(int i=0;i<size2;i++){
+        concat[concatPos++]=str2[i];
+        
+    }
+    concat[concatPos++]=' ';
+    concat[concatPos]=NULL;
+    return concat;
+}
 //parser para los casos que no puedo resolver con strtok ,|| y &&
 STRING* parser (STRING chain,const char* separator){
     STRING* tokens =string_tokenizer(chain," ");
-    int init=0;
-    int final=0;
-    int size_string=0;
-    int aux_size=0;
-    STRING* result=malloc(sizeof(tokens)*2);
-    int i=0;
-
-    while (tokens[final] != NULL)
-    {
-        if(!strcmp(tokens[final],separator)){
-            STRING temp=malloc(aux_size*size_string *sizeof(char));
-            int pos=0;
-            while (init!=final){
-                STRING min=tokens[init];
-                while (*min!='\0'){
-                    temp[pos++] = *min;
-                    min++;
-                }
-
-                temp[pos++]=' ';
-                
-                init++;
-            }
-            init++;
-            result[i]=malloc(sizeof(temp));
-            strcpy(result[i],temp);
-            i++;
-            final++;
-            aux_size=0;
-            size_string=0;
-
-        }
-        else{
-
-            size_string+=(int)strlen(tokens[final]);
-            aux_size++;
-            final++;
-        }
-    }
-    STRING temp=malloc(aux_size*size_string *sizeof(char));
-    int pos=0;
-
-    while (init!=final){
-        STRING min=tokens[init];
-        while (*min!='\0'){
-            temp[pos++] = *min;
-            min++;
-        }
-
-        temp[pos++]=' ';
-        init++;
-
-    }
-
-    result[i]=malloc(sizeof(temp));
-    strcpy(result[i],temp);
-    i++;
-    result[i]=NULL;
+    STRING* result =malloc(sizeof(tokens)*2);
+    int sizeSeparetor=0;
     
-    return result;
+    
+    for(int i = 0;tokens[i]!= NULL; i++) {
+        if(!strcmp(tokens[i],separator)){
+            //printf("%s",tokens[i]);
+            sizeSeparetor++;
+        }
+    }
+
+
+    unsigned long sizeToken[sizeSeparetor+1];
+    
+    int posSizeToken=0;
+    for(int i = 0;tokens[i]!= NULL; i++) {
+        sizeToken[posSizeToken]=sizeof(tokens[i]);
+        if(!strcmp(tokens[i],separator)){
+            posSizeToken++;
+        }
+    }
+    for(int i = 0;i<=sizeSeparetor+1;i++){
+        result[i]=malloc(sizeof(sizeToken[i]*2+1));//duplico la cantidad de espacios y le pongo un null terminator
+    }
+    int posIO=0;//cada string que estara guardado en result
+    int posIO2=0;//
+    STRING t="";
+    for(int i = 0;tokens[i]!= NULL; i++) {
+        if(strcmp(tokens[i],separator)){
+            STRING str=tokens[i];
+            STRING concat1=malloc(sizeof(t)+sizeof(char));
+            //strncat(concat1," ",)
+            
+            t=concatStr(t,str);
+            
+            //printf("%ld\n",strlen(str));
+            //result[posIO][posIO]=tokens[i];
+        }
+        
+        
+        
+    }
+    printf("%s",t);
+
+    
+
+    // while (*tokens!=NULL)
+    // {
+    //     printf("%s",*tokens);
+    //     tokens++;
+    // }
+    return tokens;
+    // int final=0
+    // int init=0;
+    // int final=0;
+    // int size_string=0;
+    // int aux_size=0;
+    // STRING* result=malloc(sizeof(tokens)*2);
+    // int i=0;
+    
+    // while (tokens[final] != NULL)
+    // {
+    //     if(!strcmp(tokens[final],separator)){
+    //         STRING* temp=malloc(aux_size*size_string *sizeof(char));
+    //         int pos=0;
+    //         while (init!=final){
+    //             STRING min=tokens[init];
+    //             while (*min!='\0'){
+    //                 temp[pos++] = *min;
+    //                 min++;
+    //             }
+
+    //             temp[pos++]=' ';
+                
+    //             init++;
+    //         }
+    //         init++;
+    //         result[i]=malloc(sizeof(temp));
+    //         strcpy(result[i],temp);
+    //         i++;
+    //         final++;
+    //         aux_size=0;
+    //         size_string=0;
+
+    //     }
+    //     else{
+
+    // //         size_string+=(int)strlen(tokens[final]);
+    // //         aux_size++;
+    // //         final++;
+    // //     }
+    // }
+    
+    // // STRING temp=malloc(aux_size*size_string *sizeof(char));
+    // // int pos=0;
+
+    // // while (init!=final){
+    // //     STRING min=tokens[init];
+    // //     while (*min!='\0'){
+    // //         temp[pos++] = *min;
+    // //         min++;
+    // //     }
+
+    // //     temp[pos++]=' ';
+    // //     init++;
+
+    // // }
+
+    // // result[i]=malloc(sizeof(temp));
+    // // strcpy(result[i],temp);
+    // // i++;
+    // // result[i]=NULL;
+    
+    // return result;
 } 
 
 STRING* string_tokenizer(STRING line,const char* separator){
@@ -146,33 +217,41 @@ void myhandler(int signum){
 
 void calling_execute(STRING line){
 
-    STRING* inits=parse_init(line);//"#" "\n" ";"
+    STRING* inits=parse_init(line);// ignore "#" "\n" and split with ";"
     while (*inits!=NULL){
-            
-        //STRING* ands = parse_and(*inits); // "&&"
+    
+        STRING* ands = parse_and(*inits); // "&&"
+        while (*ands!=NULL)
+        {
+            //printf("%s\n",*ands);
+            ands++;
+        }
+        
+        
         // int out_status=-2;
         // while (*ands !=NULL){
-        int out_status;
-        //     STRING* ors=parse_or(*ands); // "||"
+        // int out_status;
+        // STRING* ors=parse_or(*ands); // "||"
             
-        //     while (*ors!=NULL){
-        command* commands =parse_line(*inits); 
-        //         int fd=-1;
-        int fd =-1;
-        while (commands->name){
+        // while (*ors!=NULL){
+        //     command* commands =parse_line(*ors); 
+        // //         int fd=-1;
+        //     int fd =-1;
+        //     while (commands->name){
 
-            fd=execute_command(*commands,fd,&out_status);
-            commands++; 
-                       
-            // }
-            // if(out_status == 0) break;                   
-            // ors++;
-        }
-            // if(out_status != 0) break;
-            // ands++;
+        //     fd=execute_command(*commands,fd,&out_status);
+        //     commands++; 
+        //     }               
+        //     // }
+        //     if(out_status == 0) break;                   
+        //     ors++;
+        // }
+        //     if(out_status != 0) break;
+        //     ands++;
         
             inits++;
-        } 
+        //}
+    } 
 }
 
 bool is_digit(STRING chain){

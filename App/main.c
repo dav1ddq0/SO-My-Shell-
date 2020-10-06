@@ -47,7 +47,7 @@ int main(int arc,char** argv){
 
 void init(){
     system("clear");
-    //logo ,nombres del equipo
+    //logo ,team name
     printf(RED_F"        ╭━╮╭━┳╮╱╱╭╮╱╭━━━┳╮╱╭┳━━━┳╮╱╱╭╮\n");
     printf("        ┃┃╰╯┃┃╰╮╭╯┃╱┃╭━╮┃┃╱┃┃╭━━┫┃╱╱┃┃\n");
     printf("        ┃╭╮╭╮┣╮╰╯╭╯╱┃╰━━┫╰━╯┃╰━━┫┃╱╱┃┃\n");

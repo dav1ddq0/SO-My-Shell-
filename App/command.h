@@ -25,7 +25,7 @@ STRING history_wd;
 STRING current_working_directory;
 
 command init_command(STRING _command_name,int _cant_args,STRING* _args);
-
+STRING concatStr(STRING str1,STRING str2);
 STRING* parser(STRING tokens,const char* separator);
 command* parse_line(STRING _line);
 
