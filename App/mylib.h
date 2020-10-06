@@ -26,7 +26,7 @@
 #define user_login_buffer 100
 #define hostname_buffer 100
 #define cwd_buffer 500
-#define PROMPT_FORMAT  GREEN_F "%s@%s" RESET_COLOR ":" BLUE_F "%s$ " RESET_COLOR
+#define PROMPT_FORMAT  GREEN_F "%s@%s" RESET_COLOR ":" BLUE_F "%s" WHITE_F "$ "  RESET_COLOR
 #define NAMES_GROUPS   RED_F  "%s "  WHITE_F "%s" RED_F  "%s " WHITE_F "%s\n" RESET_COLOR 
 typedef char* STRING;
 typedef int bool;

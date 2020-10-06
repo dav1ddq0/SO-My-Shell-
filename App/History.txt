@@ -1,10 +1,10 @@
 ls
-ls
-ls
-ls
 ls -l
 ls -l && ls 
 ls
 ls -l && ls -l
 ls -l || ls -l
 ls -l | head -2 && ls -l && echo "Hola"
+ls -l || help
+opop || help
+llll || ls -l

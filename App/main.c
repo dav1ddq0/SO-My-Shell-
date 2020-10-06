@@ -40,7 +40,6 @@ int main(int arc,char** argv){
         update_history(line);
         calling_execute(line);
         
-       
     }
     free(line);
 }

@@ -67,105 +67,28 @@ STRING* parser (STRING chain,const char* separator){
         if(strcmp(tokens[i],separator)){
             STRING str=tokens[i];
             STRING concat1=malloc(sizeof(t)+sizeof(char));
-            //strncat(concat1," ",)
-            
             t=concatStr(t,str);
-            
-            //printf("%ld\n",strlen(str));
-            //result[posIO][posIO]=tokens[i];
-        }else
-        {
-
-            result[posIO]=malloc(sizeof(t));
-            
+        }
+        else{
+            result[posIO]=malloc(sizeof(t));   
             strcpy(result[posIO],t);
             free(t);
             t="";
             posIO++;
         }
         
+    }    
         
         
-        
-    }
+    
     result[posIO]=malloc(sizeof(t));          
     strcpy(result[posIO],t);
     free(t);
     posIO++;
     result[posIO]=NULL;
-    //printf("%s",t);
-
     
-
-    // while (*tokens!=NULL)
-    // {
-    //     printf("%s",*tokens);
-    //     tokens++;
-    // }
     return result;
-    // int final=0
-    // int init=0;
-    // int final=0;
-    // int size_string=0;
-    // int aux_size=0;
-    // STRING* result=malloc(sizeof(tokens)*2);
-    // int i=0;
-    
-    // while (tokens[final] != NULL)
-    // {
-    //     if(!strcmp(tokens[final],separator)){
-    //         STRING* temp=malloc(aux_size*size_string *sizeof(char));
-    //         int pos=0;
-    //         while (init!=final){
-    //             STRING min=tokens[init];
-    //             while (*min!='\0'){
-    //                 temp[pos++] = *min;
-    //                 min++;
-    //             }
-
-    //             temp[pos++]=' ';
-                
-    //             init++;
-    //         }
-    //         init++;
-    //         result[i]=malloc(sizeof(temp));
-    //         strcpy(result[i],temp);
-    //         i++;
-    //         final++;
-    //         aux_size=0;
-    //         size_string=0;
-
-    //     }
-    //     else{
-
-    // //         size_string+=(int)strlen(tokens[final]);
-    // //         aux_size++;
-    // //         final++;
-    // //     }
-    // }
-    
-    // // STRING temp=malloc(aux_size*size_string *sizeof(char));
-    // // int pos=0;
-
-    // // while (init!=final){
-    // //     STRING min=tokens[init];
-    // //     while (*min!='\0'){
-    // //         temp[pos++] = *min;
-    // //         min++;
-    // //     }
-
-    // //     temp[pos++]=' ';
-    // //     init++;
-
-    // // }
-
-    // // result[i]=malloc(sizeof(temp));
-    // // strcpy(result[i],temp);
-    // // i++;
-    // // result[i]=NULL;
-    
-    // return result;
-} 
+}
 
 STRING* string_tokenizer(STRING line,const char* separator){
     size_t siz = 2;
@@ -225,9 +148,9 @@ command* parse_line(STRING line){
 
 }
 void myhandler(int signum){
-    //if(signum==SIGUSR1)
-    printf("GoodByeee\n");
-    //kill(getpid(),SIGKILL);  
+    if(signum==SIGUSR1){
+    kill(getpid(),SIGKILL);
+    }
 }
 
 void calling_execute(STRING line){
@@ -258,7 +181,7 @@ void calling_execute(STRING line){
             if(out_status != 0) break;
             ands++;
         
-        
+
         }
         inits++;
     } 
