@@ -4,7 +4,22 @@ bool first_time_history_checked = TRUE;
 int history_size;
 int size;
 int bg;
-int mega=0;
+
+
+int running_bg(STRING line){
+    //STRING copy=strcpy(copy,line);
+    for(int i = strlen(line) -1;i>=0;i--){
+        if(line[i]!=' '){
+            if (line[i]=='&'){
+                line[i]=' ';
+                return 1;
+            }
+            else return 0;
+        }
+    }
+    
+    
+}
 
 command init_command(STRING name,int cant_args,STRING* args){
     command new_command;
@@ -87,7 +102,7 @@ STRING* string_tokenizer(STRING line,const char* separator){
         
         //subsequent calls must specify NULL as the first argument, which tells the function to continue tokenizing the string you passed in first        
         token = strtok(NULL, separator);
-        mega++;
+        
     }
     
     tokens[index] = NULL;//NULL terminator
@@ -133,11 +148,14 @@ void myhandler(int signum){
     // }
 }
 
-void calling_execute(STRING line){
+void calling_execute(STRING line,list* jobsList){
 
     STRING* inits=parse_init(line);// ignore "#" "\n" and split with ";"
     while (*inits!=NULL){
-    
+        gpid=-1;
+        wait_bg_pid=-1;
+        is_bg_com = running_bg(*inits);
+        current_line = *inits;
         STRING* ands = parse_and(*inits); // split "&&" 
         
         int out_status=-2;
@@ -148,7 +166,7 @@ void calling_execute(STRING line){
             command* commands =parse_line(*ors); 
             int fd =-1;
             while (commands->name){
-                fd=execute_command(*commands,fd,&out_status);
+                fd=execute_command(*commands,fd,&out_status,jobsList);
                 commands++; 
             }
             if(out_status == 0) break;                   
@@ -171,7 +189,7 @@ bool is_digit(STRING chain){
     return TRUE;
 }
 
-int execute_command(command command,int _fd,int *exit_status){
+int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //fd[0] will be the fd(file descriptor) for the 
     //read end of pipe.
     //fd[1] will be the fd for the write end of pipe.
@@ -211,7 +229,7 @@ int execute_command(command command,int _fd,int *exit_status){
         close(fds[1]);
         exit(0);
     }
-    else if(!strcmp(command.args[0], "history")) { //Hay que implementarlo
+    else if(!strcmp(command.args[0], "history")) {
          if(command.cant_args != 1){
              *exit_status=1;
              printf("history:to many arguments\n");
@@ -223,10 +241,40 @@ int execute_command(command command,int _fd,int *exit_status){
                      
     }
     
-    else if(!strcmp(command.args[0], "jobs")){  //Hay que implementarlo
+    else if(!strcmp(command.args[0], "jobs")){
+        close(fds[1]);
+        if(command.cant_args!=1){
+            perror("jobs");
+        }
+        else{
+            print_jobs(jobsList);
 
-
+        }
     }
+    else if (!strcmp(command.args[0],"fg")){
+        close(fds[1]);
+        if(command.cant_args!=2){
+            perror("fg");
+        }
+        else
+        {
+            int numb=atoi(command.args[1]);
+            int fg_gpid=remove_number(jobsList,numb);
+            wait_bg_pid=fg_gpid;
+            tcsetpgrp(STDIN_FILENO, fg_gpid);
+            if(fg_gpid!=-1){
+                int status;
+                // tcsetpgrp                
+                
+                siginfo_t sig;
+                waitid(P_PGID, fg_gpid, &sig, WEXITED);
+                //waitpid(fg_gpid,&status,WNOHANG);
+            }
+        }
+    }
+
+
+    
     else if(!strcmp(command.args[0], "again")){ 
         if(command.cant_args!=2 || !is_digit(command.args[1])){
             *exit_status=1;
@@ -234,7 +282,7 @@ int execute_command(command command,int _fd,int *exit_status){
         }
         else{
             *exit_status=0;
-            exec_history_command(atoi(command.args[1]));
+            exec_history_command(atoi(command.args[1]),jobsList);
         }
         
     }
@@ -315,28 +363,54 @@ int execute_command(command command,int _fd,int *exit_status){
             exit(EXIT_FAILURE);
 
 	    }
-	    else {    //Parent
-            //signal(SIGINT,myhandler);
-			close(fds[1]);
-            // variable que va a guardar el status que devuelva wait
-            int status=0;
-            // take one argument status and returns 
-            // a process ID of dead children.
-            //kill(pid,SIGUSR1);
-            //printf("%i\n",pid);
-            wait(&status);
-            *exit_status=status;
-            //This macro returns a nonzero value if the child process terminated normally with exit 
-            if(WIFEXITED(status)){
-                //int exit_status=WEXITSTATUS(status);
-                //*out_status=exit_status;
-                //printf("child_status %d\n",exit_status);
+	    else { 
+             if(is_bg_com){
+                background b1;
+                b1.name=command.args[0];
+                //los procesos foreground. Lo que hacemos es asginar un id de grupo a los commandos 
+                //de la misma linea con la función setpgid
+                if(gpid ==-1){
+                    setpgid(pid,pid);
+                    gpid=pid;
+
+                }
+                else{
+                    setpgid(pid,gpid);
+                }
+                
+                b1.pid=pid;
+                b1.gpid=gpid;
+                b1.name=malloc(sizeof(current_line));
+                strcpy(b1.name,current_line);  
+                append(jobsList,b1);
+                print_last_bg(jobsList);
             }
             else{
-                perror(command.args[0]);
+                       //Parent
+                //signal(SIGINT,myhandler);
+    
+                // variable que va a guardar el status que devuelva wait
+                int status=0;
+                // take one argument status and returns 
+                // a process ID of dead children.
+                //kill(pid,SIGUSR1);
+                //printf("%i\n",pid);
+                wait(&status);
+                *exit_status=status;
+                //This macro returns a nonzero value if the child process terminated normally with exit 
+                if(WIFEXITED(status)){
+                    //int exit_status=WEXITSTATUS(status);
+                    //*out_status=exit_status;
+                    //printf("child_status %d\n",exit_status);
+                }
+                else{
+                    perror(command.args[0]);
+                }
+
             }
             
             
+            close(fds[1]);
             // if(!WIFEXITED(status)){
             //     perror(command.args[0]);
             // }
@@ -476,7 +550,7 @@ int cfileexists(char* filename){
     return 0;
 }
 
-void exec_history_command(int index){
+void exec_history_command(int index,list* jobsList){
     if(1 <= index && index <= history_size){
         chdir(history_wd);
         STRING history_reader =  malloc(sizeof(char));
@@ -505,7 +579,7 @@ void exec_history_command(int index){
         }
         close(fd);
 
-        calling_execute(history_line);
+        calling_execute(history_line,jobsList);
         chdir(current_working_directory);
     }
     else printf("Again argument not in range\n");

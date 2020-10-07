@@ -1,10 +1,10 @@
-ls -l | head -2 | wc -l > t.txt
-cat t.txt
-help
-help ls
-man ls -l
-help
-ls -l && ls -l | head -2 | wc -l > test.txt
-catest.txt
+fg 1
+htop &
+jobs
+fg 1
 ls
-cat test.txt
+./execute.sh &
+jobs
+fg 1
+ls -l
+ls -l | head -2 | wc -l

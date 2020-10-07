@@ -1,1 +1,1 @@
-gcc main.c command.c -o shell.out && ./shell.out
+gcc main.c command.c linked_list.c -o shell.out && ./shell.out

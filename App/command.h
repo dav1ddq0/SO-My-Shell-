@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <ctype.h>
 #include <signal.h>
+#include "linked_list.h"
 
 void myhandler(int signum);
 typedef struct command{
@@ -23,7 +24,7 @@ typedef struct command{
 
 STRING history_wd;
 STRING current_working_directory;
-
+int running_bg(STRING line);
 command init_command(STRING _command_name,int _cant_args,STRING* _args);
 STRING concatStr(STRING str1,STRING str2);
 STRING* parser(STRING tokens,const char* separator);
@@ -33,8 +34,8 @@ STRING* string_tokenizer(STRING line,const char* separator);
 STRING* parse_init(STRING _line);
 STRING* parse_and(STRING _line);
 STRING* parse_or(STRING _line);
-void calling_execute(STRING _line);
-int execute_command(command _command,int _fd,int *_out_status);
+void calling_execute(STRING _line,list* _jobs);
+int execute_command(command _command,int _fd,int *_out_status,list* _jobs);
 bool is_digit(STRING _chain);
 void show_history();
 
@@ -44,6 +45,12 @@ int history_count();
 
 int cfileexists(char* filename);
 
-void exec_history_command(int index);
+void exec_history_command(int index,list* _jobs);
+
+int child_pid;
+int is_bg_com;
+int gpid;
+STRING current_line;
+int wait_bg_pid;
 
 #endif

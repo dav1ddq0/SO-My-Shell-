@@ -9,20 +9,43 @@
 #include <string.h>
 #include "command.h"
 #include "mylib.h"
+#include "linked_list.h"
 
 
 STRING line; 
 STRING hostname;
-STRING user_login; 
+STRING user_login;
+list bg; 
 
 size_t size;
 
 void init();
 void nothing(int signum){ /*DO NOTHING*/ }
 
+void handler_SIGINT(int signum){
+    if(child_pid!=1){
+        kill(child_pid,signum);
+    }
+    if(gpid!=-1){
+        killpg(wait_bg_pid,signum);
+    }
+}
+
+void handler_BG(int signum){
+    list temp;
+    int status;
+    int pid=waitpid(-1,&status,WNOHANG);
+    while (pid !=0 && pid != -1){
+        remove_pid(&bg,pid);
+        pid=waitpid(-1,&status,WNOHANG);
+    }
+    
+    
+}
+
 int main(int arc,char** argv){
     init();
-    
+    child_pid=-1;
     while (TRUE){
 
         signal(SIGINT, nothing);
@@ -37,8 +60,9 @@ int main(int arc,char** argv){
             perror("gentile");
 
         }
+        
         update_history(line);
-        calling_execute(line);
+        calling_execute(line,&bg);
         
     }
     free(line);
@@ -63,6 +87,8 @@ void init(){
     history_wd=malloc(sizeof(char)*cwd_buffer);
     getcwd(history_wd,cwd_buffer);
     line=malloc(sizeof(char)*line_buffer);
-    
+    signal(SIGINT, handler_SIGINT);
+    signal(SIGCHLD,handler_BG);
+    init_list(&bg);
 }
 
