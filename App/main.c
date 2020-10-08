@@ -26,20 +26,17 @@ void handler_SIGINT(int signum){
     printf("%d\n",child_pid);
     if(child_pid!=-1){
         if(canCtrlCPid==2){
-            kill(child_pid,SIGKILL);
+            kill(child_pid,SIG_IGN);
         }
         else
         {
-            //signal(SIGINT, SIG_IGN);
             kill(child_pid,SIG_IGN);
             printf("El proceso decidio ignorar la senal de SIGINT\n");
         }
         
         
     }
-    // if(gpid!=-1){
-    //     killpg(wait_bg_pid,signum);
-    // }
+    
 }
 
 void handler_BG(int signum){
@@ -58,7 +55,7 @@ int main(int arc,char** argv){
     init();
     child_pid=-1;
     
-    signal(SIGINT,SIG_IGN);
+    
     while (TRUE){
         
         
@@ -100,8 +97,8 @@ void init(){
     history_wd=malloc(sizeof(char)*cwd_buffer);
     getcwd(history_wd,cwd_buffer);
     line=malloc(sizeof(char)*line_buffer);
-    // signal(SIGINT, handler_SIGINT);
-    // signal(SIGCHLD,handler_BG);
+    signal(SIGINT, handler_SIGINT);
+    signal(SIGCHLD,handler_BG);
     init_list(&bg);
     canCtrlCPid=0;
 }

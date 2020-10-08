@@ -1,10 +1,1 @@
-history | less
-history > a.op
-cat a.op
-cat a.op
-ls
-history > a.out && cat a.out
-cat a.out
-history && ls
-jobs
-jobs && ls
+toptoptoptoptoptoptop

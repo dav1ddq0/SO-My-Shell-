@@ -270,7 +270,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             if(fg_gpid!=-1){
                 int status;                   
                 siginfo_t sig;
-                waitid(P_PGID, fg_gpid, &sig, WEXITED);
+                waitid(P_PGID,fg_gpid, &sig, WEXITED);
                 //waitpid(fg_gpid,&status,WNOHANG);
             }
         }
@@ -300,11 +300,13 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //Cualquier otro comando
     else {
         int pid = fork();// fork child 0 child 1 parent
-        child_pid=pid;
-        signal(SIGINT, SIG_IGN);
+        
+        
 	    if (!pid) { //  Child
             //signal(SIGUSR1,myhandler);
             //signal()
+            
+            
             
             //signal(SIGTSTP, SIG_DFL);
 			close(fds[0]);//
@@ -384,11 +386,13 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             }
             
             
-            
+            // printf("%d\n",getpid());
+            // printf("%d\n",getppid());
             exit(EXIT_FAILURE);
 
 	    }
 	    else { 
+                
              if(is_bg_com){
                 background b1;
                 b1.name=command.args[0];
@@ -434,7 +438,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
 
             }
             
-            
+
             close(fds[1]);
             // if(!WIFEXITED(status)){
             //     perror(command.args[0]);
