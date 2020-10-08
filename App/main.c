@@ -11,24 +11,35 @@
 #include "mylib.h"
 #include "linked_list.h"
 
-
 STRING line; 
 STRING hostname;
 STRING user_login;
-list bg; 
+list bg;
+
 
 size_t size;
 
 void init();
-void nothing(int signum){ /*DO NOTHING*/ }
 
 void handler_SIGINT(int signum){
-    if(child_pid!=1){
-        kill(child_pid,signum);
+    canCtrlCPid++;
+    printf("%d\n",child_pid);
+    if(child_pid!=-1){
+        if(canCtrlCPid==2){
+            kill(child_pid,SIGKILL);
+        }
+        else
+        {
+            //signal(SIGINT, SIG_IGN);
+            kill(child_pid,SIG_IGN);
+            printf("El proceso decidio ignorar la senal de SIGINT\n");
+        }
+        
+        
     }
-    if(gpid!=-1){
-        killpg(wait_bg_pid,signum);
-    }
+    // if(gpid!=-1){
+    //     killpg(wait_bg_pid,signum);
+    // }
 }
 
 void handler_BG(int signum){
@@ -46,9 +57,11 @@ void handler_BG(int signum){
 int main(int arc,char** argv){
     init();
     child_pid=-1;
+    
+    signal(SIGINT,SIG_IGN);
     while (TRUE){
-
-        signal(SIGINT, nothing);
+        
+        
         getcwd(current_working_directory,cwd_buffer); 
         printf(PROMPT_FORMAT,user_login,hostname,current_working_directory);
         int characters = getline(&line, &size, stdin);
@@ -87,8 +100,9 @@ void init(){
     history_wd=malloc(sizeof(char)*cwd_buffer);
     getcwd(history_wd,cwd_buffer);
     line=malloc(sizeof(char)*line_buffer);
-    signal(SIGINT, handler_SIGINT);
-    signal(SIGCHLD,handler_BG);
+    // signal(SIGINT, handler_SIGINT);
+    // signal(SIGCHLD,handler_BG);
     init_list(&bg);
+    canCtrlCPid=0;
 }
 

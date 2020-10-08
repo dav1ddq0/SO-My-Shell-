@@ -195,6 +195,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //fd[1] will be the fd for the write end of pipe.
     //Returns : 0 on Success.
     //-1 on error.ls;
+    canCtrlCPid=0;
     int fds[2];
 
 	//pipe(fds);
@@ -240,7 +241,21 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         }
                      
     }
-    
+    else if(!strcmp(command.args[0], "help")){
+        
+        if(command.cant_args ==1){
+            printHelp(0);
+        }
+        else if (command.cant_args ==2)
+        {
+            printf("\n");
+        }
+        else
+        {
+            perror("jobs Invalid args number\n");
+        }
+        
+    }
     else if(!strcmp(command.args[0], "jobs")){
         close(fds[1]);
         if(command.cant_args!=1){
@@ -261,11 +276,9 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             int numb=atoi(command.args[1]);
             int fg_gpid=remove_number(jobsList,numb);
             wait_bg_pid=fg_gpid;
-            tcsetpgrp(STDIN_FILENO, fg_gpid);
+            
             if(fg_gpid!=-1){
-                int status;
-                // tcsetpgrp                
-                
+                int status;                   
                 siginfo_t sig;
                 waitid(P_PGID, fg_gpid, &sig, WEXITED);
                 //waitpid(fg_gpid,&status,WNOHANG);
@@ -297,9 +310,13 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //Cualquier otro comando
     else {
         int pid = fork();// fork child 0 child 1 parent
-        
+        child_pid=pid;
+        signal(SIGINT, SIG_IGN);
 	    if (!pid) { //  Child
             //signal(SIGUSR1,myhandler);
+            //signal()
+            
+            //signal(SIGTSTP, SIG_DFL);
 			close(fds[0]);//
             int fd_read_out = _fd; 
             int fd_write_in = fds[1];
@@ -419,7 +436,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
            
 	    }
     }
-
+    
 	return fds[0];
 
 }

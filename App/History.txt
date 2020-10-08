@@ -1,10 +1,10 @@
 fg 1
-htop &
-jobs
-fg 1
+ls -l && firefox &
 ls
-./execute.sh &
+ls
+jobs
 jobs
 fg 1
-ls -l
+jobs
+ls -l | head -2 | wc -2
 ls -l | head -2 | wc -l

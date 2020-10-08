@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include "linked_list.h"
+#include "help.h"
 
 void myhandler(int signum);
 typedef struct command{
@@ -52,5 +53,6 @@ int is_bg_com;
 int gpid;
 STRING current_line;
 int wait_bg_pid;
+int canCtrlCPid; 
 
 #endif
