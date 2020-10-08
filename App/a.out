@@ -1,0 +1,10 @@
+1-history | less
+2-history | less
+3-history > a.op
+4-cat a.op
+5-history | less
+6-history > a.op
+7-cat a.op
+8-cat a.op
+9-ls
+10-history > a.out && cat a.out

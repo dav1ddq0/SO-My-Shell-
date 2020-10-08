@@ -230,17 +230,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         close(fds[1]);
         exit(0);
     }
-    else if(!strcmp(command.args[0], "history")) {
-         if(command.cant_args != 1){
-             *exit_status=1;
-             printf("history:to many arguments\n");
-        }
-         else{
-            *exit_status=0; 
-            show_history();   
-        }
-                     
-    }
+    
     else if(!strcmp(command.args[0], "help")){
         
         if(command.cant_args ==1){
@@ -332,6 +322,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                 if(!strcmp(command.args[i],">")){
                     close(fd_write_in);
                     i++;
+                    command.cant_args-=2;
                     //0766 permiso de todo lectura escritura para usuario y grupo
 
                     int fd_file =open(command.args[i],O_WRONLY|O_CREAT|O_TRUNC,0766);
@@ -344,11 +335,13 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     //int fd_file =open(command.args[i],O_WRONLY);
                 }
                 else if(!strcmp(command.args[i],"<")){
+                    command.cant_args-=2;
                     i++;
                     close(fd_read_out);
                     fd_read_out=open(command.args[i],O_RDONLY,0766);
                 }
                 else if(!strcmp(command.args[i],">>")){
+                    command.cant_args-=2;
                     i++;
                     close(fd_write_in);                    
                     fd_write_in=open(command.args[i],O_WRONLY|O_CREAT|O_APPEND,0766);
@@ -361,7 +354,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             }
             process_result[pos] = STRING_TERMINATOR;           
             
-
+            
             // here the newfd is the file descriptor of stdin
             //STDIN_FILENO 0 fd de stdin
             dup2(fd_read_out, STDIN_FILENO);
@@ -371,10 +364,25 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
 			dup2(fd_write_in, STDOUT_FILENO);
 	    	close(fd_write_in);
 
-            int res_execvp=execvp(process_result[0], process_result);
-            if( res_execvp < 0) {//en caso que el sistema no pueda ejecutar ese comando 
-                perror("execvp");
+            if(!strcmp(process_result[0], "history")) {
+            if(command.cant_args != 1){
+                *exit_status=1;
+                 printf("history:to many arguments\n");
             }
+            else{
+                *exit_status=0; 
+                show_history();   
+            }
+                     
+            }
+            else{
+                int res_execvp=execvp(process_result[0], process_result);
+                if( res_execvp < 0) {//en caso que el sistema no pueda ejecutar ese comando 
+                    perror("execvp");
+                }
+
+            }
+            
             
             
             exit(EXIT_FAILURE);
@@ -451,27 +459,27 @@ void show_history(){
     const char hyphen = '-';
 
     if(history_size > 0){
-        write(1,&i,1);
-        write(1,&hyphen,1);
+        write(STDOUT_FILENO,&i,1);
+        write(STDOUT_FILENO,&hyphen,1);
     }
      
     while (read(fd, &buf, 1)){
-        write(1, &buf, 1);
+        write(STDOUT_FILENO, &buf, 1);
         
         if (buf == '\n'){
             i++;
             if(i == 58){
                 i = 49;
-                write(1,&i,1);
+                write(STDOUT_FILENO,&i,1);
                 i = 48;
-                write(1,&i,1);
-                write(1,&hyphen,1);
+                write(STDOUT_FILENO,&i,1);
+                write(STDOUT_FILENO,&hyphen,1);
                 i = 58;
             }
 
             else if((i-48) <= history_size){
-                write(1,&i,1);
-                write(1,&hyphen,1);
+                write(STDOUT_FILENO,&i,1);
+                write(STDOUT_FILENO,&hyphen,1);
             }
         }
     }

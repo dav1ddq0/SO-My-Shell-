@@ -1,10 +1,10 @@
-fg 1
-ls -l && firefox &
+history | less
+history > a.op
+cat a.op
+cat a.op
 ls
-ls
+history > a.out && cat a.out
+cat a.out
+history && ls
 jobs
-jobs
-fg 1
-jobs
-ls -l | head -2 | wc -2
-ls -l | head -2 | wc -l
+jobs && ls
