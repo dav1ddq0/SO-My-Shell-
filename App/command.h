@@ -13,7 +13,7 @@
 #include "linked_list.h"
 #include "help.h"
 
-void myhandler(int signum);
+void hijo(int signum);
 typedef struct command{
     STRING name;
     int cant_args;
@@ -36,7 +36,7 @@ STRING* parse_init(STRING _line);
 STRING* parse_and(STRING _line);
 STRING* parse_or(STRING _line);
 void calling_execute(STRING _line,list* _jobs);
-int execute_command(command _command,int _fd,int *_out_status,list* _jobs);
+int execute_command(command _command,int _fd,int *_out_status,list* _jobs,int *__pid);
 bool is_digit(STRING _chain);
 void show_history();
 
@@ -47,12 +47,14 @@ int history_count();
 int cfileexists(char* filename);
 
 void exec_history_command(int index,list* _jobs);
-
+void padre(int _signum);
 int child_pid;
 int is_bg_com;
 int gpid;
 STRING current_line;
 int wait_bg_pid;
 int canCtrlCPid; 
+int ppid;
+static int SIGUSR1_pid = 0;
 
 #endif

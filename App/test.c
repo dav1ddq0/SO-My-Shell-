@@ -1,13 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
 #include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
+
+void handler(int signum){
+
+    printf("Yo ignore Ctrl+C");
+}
+
 int main(int arc,char** argv){
+
+    signal(SIGINT,handler);
     while (1)
     {
         printf("Hola\n");

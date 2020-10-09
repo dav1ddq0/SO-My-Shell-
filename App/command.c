@@ -142,10 +142,11 @@ command* parse_line(STRING line){
     return NULL;
 
 }
-void myhandler(int signum){
-    // if(signum==SIGUSR1){
-    // kill(getpid(),SIGKILL);
-    // }
+void hijo(int signum){
+    printf("\t\t¡Padre! ¿Qué haces?\n");
+    printf("\t\tFinal de ejecución de %d \n", getpid());
+    kill(getppid(), SIGUSR1);
+    exit(0);
 }
 
 void calling_execute(STRING line,list* jobsList){
@@ -166,7 +167,7 @@ void calling_execute(STRING line,list* jobsList){
             command* commands =parse_line(*ors); 
             int fd =-1;
             while (commands->name){
-                fd=execute_command(*commands,fd,&out_status,jobsList);
+                fd=execute_command(*commands,fd,&out_status,jobsList,&child_pid);
                 commands++; 
             }
             if(out_status == 0) break;                   
@@ -189,7 +190,7 @@ bool is_digit(STRING chain){
     return TRUE;
 }
 
-int execute_command(command command,int _fd,int *exit_status,list* jobsList){
+int execute_command(command command,int _fd,int *exit_status,list* jobsList,int *_pid){
     //fd[0] will be the fd(file descriptor) for the 
     //read end of pipe.
     //fd[1] will be the fd for the write end of pipe.
@@ -197,7 +198,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //-1 on error.ls;
     canCtrlCPid=0;
     int fds[2];
-
+    
 	//pipe(fds);
      /* Create the pipe. */
     if (pipe (fds)){
@@ -270,7 +271,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             if(fg_gpid!=-1){
                 int status;                   
                 siginfo_t sig;
-                waitid(P_PGID,fg_gpid, &sig, WEXITED);
+    sleep(10);            waitid(P_PGID,fg_gpid, &sig, WEXITED);
                 //waitpid(fg_gpid,&status,WNOHANG);
             }
         }
@@ -299,16 +300,13 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     
     //Cualquier otro comando
     else {
-        int pid = fork();// fork child 0 child 1 parent
+        int pid = fork();// fork  0 child 1 parent
         
-        
-	    if (!pid) { //  Child
-            //signal(SIGUSR1,myhandler);
-            //signal()
+
+	    if (!pid) { //  if Child
             
             
-            
-            //signal(SIGTSTP, SIG_DFL);
+            signal(SIGINT,padre);
 			close(fds[0]);//
             int fd_read_out = _fd; 
             int fd_write_in = fds[1];
@@ -386,37 +384,44 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             }
             
             
-            // printf("%d\n",getpid());
-            // printf("%d\n",getppid());
-            exit(EXIT_FAILURE);
+
+            
 
 	    }
-	    else { 
-                
+	    else {
+            
+            //signal(SIGUSR1,padre);
+            
+            //kill(pid,SIGUSR1);
+             //printf("%d\n",getpid()) ;  
              if(is_bg_com){
-                background b1;
-                b1.name=command.args[0];
-                //los procesos foreground. Lo que hacemos es asginar un id de grupo a los commandos 
-                //de la misma linea con la función setpgid
-                if(gpid ==-1){
-                    setpgid(pid,pid);
-                    gpid=pid;
+            //     background b1;
+            //     b1.name=command.args[0];
+            //     //los procesos foreground. Lo que hacemos es asginar un id de grupo a los commandos 
+            //     //de la misma linea con la función setpgid
+            //     if(gpid ==-1){
+            //         setpgid(pid,pid);
+            //         gpid=pid;
 
-                }
-                else{
-                    setpgid(pid,gpid);
-                }
+            //     }
+            //     else{
+            //         setpgid(pid,gpid);
+            //     }
                 
-                b1.pid=pid;
-                b1.gpid=gpid;
-                b1.name=malloc(sizeof(current_line));
-                strcpy(b1.name,current_line);  
-                append(jobsList,b1);
-                print_last_bg(jobsList);
+            //     b1.pid=pid;
+            //     b1.gpid=gpid;
+            //     b1.name=malloc(sizeof(current_line));
+            //     strcpy(b1.name,current_line);  
+            //     append(jobsList,b1);
+            //     print_last_bg(jobsList);
             }
             else{
+                
+                //printf("%d%  d\n",pid,getppid());
+                // kill(pid,SIGINT);
                        //Parent
-                //signal(SIGINT,myhandler);
+                child_pid=pid;
+                signal(SIGINT,padre);
     
                 // variable que va a guardar el status que devuelva wait
                 int status=0;
@@ -438,7 +443,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
 
             }
             
-
+            //child_pid=pid;
             close(fds[1]);
             // if(!WIFEXITED(status)){
             //     perror(command.args[0]);
@@ -448,7 +453,8 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
            
 	    }
     }
-    
+    //exit(EXIT_FAILURE);
+    //printf("%d\n",child_pid);
 	return fds[0];
 
 }
@@ -612,4 +618,25 @@ void exec_history_command(int index,list* jobsList){
         chdir(current_working_directory);
     }
     else printf("Again argument not in range\n");
+}
+
+
+void padre(int signum){  
+    canCtrlCPid++;
+    printf("%d %d\n",child_pid,ppid);
+    
+    if(child_pid!=-1 && child_pid!=ppid){
+        if(canCtrlCPid==2){
+            printf("processs killed\n");
+            kill(child_pid,SIGKILL);
+        }
+        else
+        {
+            
+            printf(":(\n");    
+        }
+        
+        
+    }
+    
 }

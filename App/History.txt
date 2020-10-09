@@ -1,1 +1,10 @@
-toptoptoptoptoptoptop
+./a.out
+top
+top
+./a.out
+./a.out
+
+top
+./a.out
+top
+./a.out
