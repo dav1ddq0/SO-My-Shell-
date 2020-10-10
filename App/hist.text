@@ -1,0 +1,19 @@
+total 148
+-rwxrw-r-- 1 dquesada dquesada    26 oct  7 22:55 a.op
+-rwxrwxr-x 1 dquesada dquesada 16816 oct  9 18:15 a.out
+-rwxrwxr-x 1 dquesada dquesada 18256 oct  9 19:23 command.c
+-rwxrwxr-x 1 dquesada dquesada  1370 oct  9 17:24 command.h
+-rwxrwxrwx 1 dquesada dquesada    69 oct  7 14:25 execute.sh
+-rw-rw-r-- 1 dquesada dquesada  2408 oct  7 17:04 help.c
+-rw-rw-r-- 1 dquesada dquesada   256 oct  7 16:53 help.h
+-rwxrw-r-- 1 dquesada dquesada   153 oct  9 19:25 his.text
+-rwxrw-r-- 1 dquesada dquesada    85 oct  9 19:25 History.txt
+-rwxrw-r-- 1 dquesada dquesada     0 oct  9 19:25 hist.text
+-rwxrwxrwx 1 dquesada dquesada  3361 abr 26 22:23 linked_list.c
+-rwxrwxrwx 1 dquesada dquesada  1011 abr 26 17:58 linked_list.h
+-rwxrwxr-x 1 dquesada dquesada  2517 oct  9 17:53 main.c
+-rwxrwxrwx 1 dquesada dquesada   974 oct  6 01:04 mylib.h
+-rwxrwxr-x 1 dquesada dquesada 32792 oct  9 19:25 shell.out
+-rw-rw-r-- 1 dquesada dquesada   240 oct  9 18:15 test.c
+-rw-rw-r-- 1 dquesada dquesada   132 oct  6 15:35 tester
+-rwxrwxr-x 1 dquesada dquesada 16696 oct  8 01:08 test.out

@@ -36,7 +36,7 @@ STRING* parse_init(STRING _line);
 STRING* parse_and(STRING _line);
 STRING* parse_or(STRING _line);
 void calling_execute(STRING _line,list* _jobs);
-int execute_command(command _command,int _fd,int *_out_status,list* _jobs,int *__pid);
+int execute_command(command _command,int _fd,int *_out_status,list* _jobs);
 bool is_digit(STRING _chain);
 void show_history();
 
@@ -55,6 +55,7 @@ STRING current_line;
 int wait_bg_pid;
 int canCtrlCPid; 
 int ppid;
+bool built_in;
 static int SIGUSR1_pid = 0;
 
 #endif

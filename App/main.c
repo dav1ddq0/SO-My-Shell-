@@ -85,6 +85,7 @@ void init(){
     // signal(SIGUSR1,padre);
     init_list(&bg);
     canCtrlCPid=0;
+    built_in=FALSE;
     ppid=getpid();
 }
 
