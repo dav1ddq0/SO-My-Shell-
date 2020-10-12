@@ -41,7 +41,7 @@ int main(int arc,char** argv){
     
     while (TRUE){
         
-        
+        is_bg_com=0;
         getcwd(current_working_directory,cwd_buffer); 
         printf(PROMPT_FORMAT,user_login,hostname,current_working_directory);
         int characters = getline(&line, &size, stdin);
@@ -81,7 +81,7 @@ void init(){
     getcwd(history_wd,cwd_buffer);
     line=malloc(sizeof(char)*line_buffer);
     // signal(SIGINT, handler_SIGINT);
-    // signal(SIGCHLD,handler_BG);
+    signal(SIGCHLD,handler_BG);
     // signal(SIGUSR1,padre);
     init_list(&bg);
     canCtrlCPid=0;

@@ -143,7 +143,7 @@ command* parse_line(STRING line){
 
 }
 void hijo(int signum){
-    printf("\t\t¡Padre! ¿Qué haces?\n");
+    printf("\t\t¡InterruptHandler! ¿Qué haces?\n");
     printf("\t\tFinal de ejecución de %d \n", getpid());
     kill(getppid(), SIGUSR1);
     exit(0);
@@ -198,7 +198,9 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //fd[1] will be the fd for the write end of pipe.
     //Returns : 0 on Success.
     //-1 on error.ls;
+
     canCtrlCPid=0;
+    
     int fds[2];
     
 	//pipe(fds);
@@ -207,213 +209,222 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         fprintf(stderr, "Pipe failed.\n");
         return EXIT_FAILURE;
     }
-    
-    int pid = fork();// fork  0 child 1 parent
-	if (!pid) { //  if Child
-        //signal(SIGINT,padre);
-		close(fds[0]);//
-        int fd_read_out = _fd; 
-        int fd_write_in = fds[1];
-        
-        STRING* process_result = malloc((command.cant_args+1)*sizeof(STRING)*sizeof(STRING));
-        //en caso que el proceso que va esta siendo ejecutado es el ultimo de la linea antes parseada
-        if(command.end_line){ 
-            close(fds[1]); 
-            fd_write_in = -1;                
-        }
-        int pos=0;
-        for (int i = 0; i < command.cant_args; i++){
-            if(!strcmp(command.args[i],">")){
-                close(fd_write_in);
-                i++;
-                command.cant_args-=2;
-                //0766 permiso de todo lectura escritura para usuario y grupo
-                int fd_file =open(command.args[i],O_WRONLY|O_CREAT|O_TRUNC,0766);
-                fd_write_in=fd_file;  
-            }
-            else if(!strcmp(command.args[i],"<")){
-                command.cant_args-=2;
-                i++;
-                close(fd_read_out);
-                fd_read_out=open(command.args[i],O_RDONLY,0766);
-            }
-            else if(!strcmp(command.args[i],">>")){
-                command.cant_args-=2;
-                i++;
-                close(fd_write_in);                    
-                fd_write_in=open(command.args[i],O_WRONLY|O_CREAT|O_APPEND,0766);
-            }
-            else
-            {
-                process_result[pos++] = command.args[i];
-            }
-        }
-        process_result[pos] = STRING_TERMINATOR;           
-        
-        
-        // here the newfd is the file descriptor of stdin
-        //STDIN_FILENO 0 fd de stdin
-        dup2(fd_read_out, STDIN_FILENO);
-		close(fd_read_out);
-        //here the newfd is the file descriptor of stdout 
-        //STDOUT_FILENO 1 fd de stdout
-		dup2(fd_write_in, STDOUT_FILENO);
-		close(fd_write_in);
-        if(!strcmp(process_result[0], "history")) {
-            if(command.cant_args != 1){
-                
-                printf("history:to many arguments\n");
-                exit(EXIT_FAILURE);
-            }
-            else{
-                 
-                show_history();
-                exit(EXIT_SUCCESS);
-            }
-        }
-        else if(!strcmp(command.args[0], "again")){ 
-            if(command.cant_args!=2 || !is_digit(command.args[1])){
-                perror("again");
-                exit(EXIT_FAILURE);
-
-            }
-            else{
-                exec_history_command(atoi(command.args[1]),jobsList);
-                exit(EXIT_SUCCESS);
-            }
-        }   
-        else if(!strcmp(command.args[0], "help")){
-            if(command.cant_args ==1){
-                printHelp(0);
-                exit(EXIT_SUCCESS);
-            }
-            else if (command.cant_args ==2){
-                printf("\n");
-            }
-            else{
-                perror("help:to many arguments\n");
-                exit(EXIT_FAILURE);
-            }
-            
-            
-        }
-        else if(!strcmp(command.args[0],"true")){
-            exit(0);
-        }
-        else if(!strcmp(command.args[0],"false")){
-            exit(1);
-        }
-        else if(!strcmp(command.args[0], "exit")) { //si se escribe el comando exit salir de la consola	
+    if(!strcmp(command.args[0], "exit")) { //si se escribe el comando exit salir de la consola	
             close(fds[0]); 
             close(fds[1]);
-            
             exit(EXIT_SUCCESS);
             
         }
-        if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
+    else{
+        int pid = fork();// fork  0 child 1 parent
         
-		    close(fds[1]);
-            if(command.cant_args != 2) { // si existen mas de 2 argumentos imprimir error 
-                printf("bash: cd: to many arguments\n"); 
-                exit(EXIT_FAILURE);
-            } 
-            else if(chdir(command.args[1])) {            
-                perror("cd"); 
-                exit(EXIT_FAILURE);
-            } // si el chdir retorna error
-            else{
-                exit(EXIT_SUCCESS);
+	    if (!pid) { //  if Child
+        //signal(SIGINT,InterruptHandler);
+            if(is_bg_com){
+                if(gpid==-1){
+                    setpgrp();
+                    gpid=pid;
+                }
+                else{
+                    setpgid(pid,gpid);
+                }
             }
-        }
+		    close(fds[0]);//
+            int fd_read_out = _fd; 
+            int fd_write_in = fds[1];
 
-        else if(!strcmp(command.args[0], "jobs")){
-            close(fds[1]);
-            if(command.cant_args!=1){
-                perror("jobs");
+            STRING* process_result = malloc((command.cant_args+1)*sizeof(STRING)*sizeof(STRING));
+            //en caso que el proceso que va esta siendo ejecutado es el ultimo de la linea antes parseada
+            if(command.end_line){ 
+                close(fds[1]); 
+                fd_write_in = -1;                
             }
-            else{
-                print_jobs(jobsList);
+            int pos=0;
+            for (int i = 0; i < command.cant_args; i++){
+                if(!strcmp(command.args[i],">")){
+                    close(fd_write_in);
+                    i++;
+                    command.cant_args-=2;
+                    //0766 permiso de todo lectura escritura para usuario y grupo
+                    int fd_file =open(command.args[i],O_WRONLY|O_CREAT|O_TRUNC,0766);
+                    fd_write_in=fd_file;  
+                }
+                else if(!strcmp(command.args[i],"<")){
+                    command.cant_args-=2;
+                    i++;
+                    close(fd_read_out);
+                    fd_read_out=open(command.args[i],O_RDONLY,0766);
+                }
+                else if(!strcmp(command.args[i],">>")){
+                    command.cant_args-=2;
+                    i++;
+                    close(fd_write_in);                    
+                    fd_write_in=open(command.args[i],O_WRONLY|O_CREAT|O_APPEND,0766);
+                }
+                else
+                {
+                    process_result[pos++] = command.args[i];
+                }
             }
-        }
-        else if (!strcmp(command.args[0],"fg")){
-            close(fds[1]);
-            if(command.cant_args!=2){
-                perror("fg");
+            process_result[pos] = STRING_TERMINATOR;           
+
+
+            // here the newfd is the file descriptor of stdin
+            //STDIN_FILENO 0 fd de stdin
+            dup2(fd_read_out, STDIN_FILENO);
+		    close(fd_read_out);
+            //here the newfd is the file descriptor of stdout 
+            //STDOUT_FILENO 1 fd de stdout
+		    dup2(fd_write_in, STDOUT_FILENO);
+		    close(fd_write_in);
+            if(!strcmp(process_result[0], "history")) {
+                if(command.cant_args != 1){
+
+                    printf("history:to many arguments\n");
+                    exit(EXIT_FAILURE);
+                }
+                else{
+
+                    show_history();
+                    exit(EXIT_SUCCESS);
+                }
             }
-            else
-            {
-                int numb=atoi(command.args[1]);
-                int fg_gpid=remove_number(jobsList,numb);
-                wait_bg_pid=fg_gpid;
-                if(fg_gpid!=-1){
-                    int status;                   
-                    siginfo_t sig;
-                    waitid(P_PGID,fg_gpid, &sig, WEXITED);
-                    //waitpid(fg_gpid,&status,WNOHANG);
+            else if(!strcmp(command.args[0], "again")){ 
+                if(command.cant_args!=2 || !is_digit(command.args[1])){
+                    perror("again");
+                    exit(EXIT_FAILURE);
+
+                }
+                else{
+                    exec_history_command(atoi(command.args[1]),jobsList);
+                    exit(EXIT_SUCCESS);
+                }
+            }   
+            else if(!strcmp(command.args[0], "help")){
+                if(command.cant_args ==1){
+                    printHelp(0);
+                    exit(EXIT_SUCCESS);
+                }
+                else if (command.cant_args ==2){
+                    printf("\n");
+                }
+                else{
+                    perror("help:to many arguments\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if(!strcmp(command.args[0],"true")){
+                exit(0);
+            }
+            else if(!strcmp(command.args[0],"false")){
+                exit(1);
+            }
+
+            if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
+
+		        close(fds[1]);
+                if(command.cant_args != 2) { // si existen mas de 2 argumentos imprimir error 
+                    printf("bash: cd: to many arguments\n"); 
+                    exit(EXIT_FAILURE);
+                } 
+                else if(chdir(command.args[1])) {            
+                    perror("cd"); 
+                    exit(EXIT_FAILURE);
+                } // si el chdir retorna error
+                else{
+                    exit(EXIT_SUCCESS);
+                }
+            }
+
+            else if(!strcmp(command.args[0], "jobs")){
+                close(fds[1]);
+                if(command.cant_args!=1){
+                    perror("jobs");
+                }
+                else{
+                    print_jobs(jobsList);
+                }
+            }
+            else if (!strcmp(command.args[0],"fg")){
+                close(fds[1]);
+                if(command.cant_args!=2){
+                    perror("fg");
+                }
+                else
+                {
+                    int numb=atoi(command.args[1]);
+                    int fg_gpid=remove_number(jobsList,numb);
+                    wait_bg_pid=fg_gpid;
+                    if(fg_gpid!=-1){
+                        int status;                   
+                        siginfo_t sig;
+                        waitid(P_PGID,fg_gpid, &sig, WEXITED);
+                        //waitpid(fg_gpid,&status,WNOHANG);
+                        }
                     }
                 }
-            }
 
-            
-            else{
-                int res_execvp=execvp(process_result[0], process_result);
-                if( res_execvp < 0) {//en caso que el sistema no pueda ejecutar ese comando 
-                    perror("execvp");
+
+                else{
+                    int res_execvp=execvp(process_result[0], process_result);
+                    if( res_execvp < 0) {//en caso que el sistema no pueda ejecutar ese comando 
+                        perror("execvp");
+                    }
+
                 }
-
-            }
-            
-            
-
-            
-
-	}
-	else {
+                // exit(1);
+                
+	    }
+	    else {
             if(is_bg_com){
-            //     background b1;
-            //     b1.name=command.args[0];
-            //     //los procesos foreground. Lo que hacemos es asginar un id de grupo a los commandos 
-            //     //de la misma linea con la función setpgid
-            //     if(gpid ==-1){
-            //         setpgid(pid,pid);
-            //         gpid=pid;
+                background b1;
+                b1.name=command.args[0];
+                //los procesos foreground. Lo que hacemos es asginar un id de grupo a los commandos 
+                //de la misma linea con la función setpgid
+                if(gpid ==-1){
+                    setpgid(pid,pid);
+                    gpid=pid;
 
-            //     }
-            //     else{
-            //         setpgid(pid,gpid);
-            //     }
+                }
+                else{
+                    setpgid(pid,gpid);
+                }
                 
-            //     b1.pid=pid;
-            //     b1.gpid=gpid;
-            //     b1.name=malloc(sizeof(current_line));
-            //     strcpy(b1.name,current_line);  
-            //     append(jobsList,b1);
-            //     print_last_bg(jobsList);
+                b1.pid=pid;
+                b1.gpid=gpid;
+                b1.name=malloc(sizeof(current_line));
+                strcpy(b1.name,current_line);  
+                append(jobsList,b1);
+                print_last_bg(jobsList);
+                
             }
             else{
-                child_pid=pid;
-                signal(SIGINT,padre);
-                // variable que va a guardar el status que devuelva wait
-                int status=0;
-                // take one argument status and returns 
-                // a process ID of dead children.
-                wait(&status);
-               
-                
-                *exit_status=status;
-                
-                    
-                //This macro returns a nonzero value if the child process terminated normally with exit 
-                if(!WIFEXITED(status)){
-                    perror(command.args[0]);
-                }
+                    child_pid=pid;
+                    signal(SIGINT,InterruptHandler);
+                    // variable que va a guardar el status que devuelva wait
+                    int status=0;
+                    // take one argument status and returns 
+                    // a process ID of dead children.
+                    wait(&status);
+
+
+                    *exit_status=status;
+
+
+                    //This macro returns a nonzero value if the child process terminated normally with exit 
+                    if(!WIFEXITED(status)){
+                        perror(command.args[0]);
+                    }
             }
                 
 
             
             
             close(fds[1]);
+        }
     }
+    
+    
     
 	return fds[0];
 
@@ -581,7 +592,7 @@ void exec_history_command(int index,list* jobsList){
 }
 
 
-void padre(int signum){  
+void InterruptHandler(int signum){  
     canCtrlCPid++;
     printf("%d %d\n",child_pid,ppid);
     

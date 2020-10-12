@@ -1,10 +1,10 @@
-exit
-exit
-exit
+firefox &
+jobs
+fg 1
+./a.out &
+firefox &
+jobs
+fg 1
+jobs
+ls &
 ls
-ls
-help
-help |less
-ls
-ls -l | head -2 | wc -l
-exit

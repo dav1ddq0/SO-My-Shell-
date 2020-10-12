@@ -47,7 +47,7 @@ int history_count();
 int cfileexists(char* filename);
 
 void exec_history_command(int index,list* _jobs);
-void padre(int _signum);
+void InterruptHandler(int _signum);
 int child_pid;
 int is_bg_com;
 int gpid;
