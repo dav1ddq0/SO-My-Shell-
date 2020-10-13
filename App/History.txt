@@ -1,10 +1,10 @@
 firefox &
 jobs
 fg 1
-./a.out &
-firefox &
-jobs
-fg 1
-jobs
-ls &
 ls
+cd ..
+cd ..
+ls
+ls -l 
+history
+again 8 | head -2

@@ -8,15 +8,19 @@ int bg;
 
 int running_bg(STRING line){
     //STRING copy=strcpy(copy,line);
-    for(int i = strlen(line) -1;i>=0;i--){
+    size_t len =strlen(line);
+    if(len>=2){
+        for(int i = len -1;i>=0;i--){
         if(line[i]!=' '){
-            if (line[i]=='&'){
+            if (line[i]=='&' && line[i-1]==' '){
                 line[i]=' ';
                 return 1;
             }
             else return 0;
         }
     }
+    }
+    
     
     
 }
@@ -215,6 +219,45 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             exit(EXIT_SUCCESS);
             
         }
+    else if (!strcmp(command.args[0],"fg")){
+                close(fds[1]);
+                if(command.cant_args!=2){
+                    perror("fg");
+                }
+                else
+                {
+                    int numb=atoi(command.args[1]);
+                    int fg_gpid=remove_number(jobsList,numb);
+                    wait_bg_pid=fg_gpid;
+                    if(fg_gpid!=-1){
+                        int status;                   
+                        siginfo_t sig;
+                        waitid(P_PGID,fg_gpid, &sig, WEXITED);
+                        //waitpid(fg_gpid,&status,WNOHANG);
+                        }
+                    }
+                }
+    else if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
+
+		        close(fds[1]);
+                if(command.cant_args != 2) { // si existen mas de 2 argumentos imprimir error 
+                    printf("bash: cd: to many arguments\n"); 
+                    *exit_status=1;
+                } 
+                else if(chdir(command.args[1])) {            
+                    perror("cd"); 
+                    *exit_status=0;
+                } // si el chdir retorna error
+                else{
+                    // exit(EXIT_SUCCESS);
+                }
+            }
+    else if(!strcmp(command.args[0],"true")){
+                *exit_status=0;
+            }
+            else if(!strcmp(command.args[0],"false")){
+                *exit_status=1;
+            }                        
     else{
         int pid = fork();// fork  0 child 1 parent
         
@@ -313,28 +356,9 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     exit(EXIT_FAILURE);
                 }
             }
-            else if(!strcmp(command.args[0],"true")){
-                exit(0);
-            }
-            else if(!strcmp(command.args[0],"false")){
-                exit(1);
-            }
+            
 
-            if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
-
-		        close(fds[1]);
-                if(command.cant_args != 2) { // si existen mas de 2 argumentos imprimir error 
-                    printf("bash: cd: to many arguments\n"); 
-                    exit(EXIT_FAILURE);
-                } 
-                else if(chdir(command.args[1])) {            
-                    perror("cd"); 
-                    exit(EXIT_FAILURE);
-                } // si el chdir retorna error
-                else{
-                    exit(EXIT_SUCCESS);
-                }
-            }
+            
 
             else if(!strcmp(command.args[0], "jobs")){
                 close(fds[1]);
@@ -345,24 +369,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     print_jobs(jobsList);
                 }
             }
-            else if (!strcmp(command.args[0],"fg")){
-                close(fds[1]);
-                if(command.cant_args!=2){
-                    perror("fg");
-                }
-                else
-                {
-                    int numb=atoi(command.args[1]);
-                    int fg_gpid=remove_number(jobsList,numb);
-                    wait_bg_pid=fg_gpid;
-                    if(fg_gpid!=-1){
-                        int status;                   
-                        siginfo_t sig;
-                        waitid(P_PGID,fg_gpid, &sig, WEXITED);
-                        //waitpid(fg_gpid,&status,WNOHANG);
-                        }
-                    }
-                }
+            
 
 
                 else{
