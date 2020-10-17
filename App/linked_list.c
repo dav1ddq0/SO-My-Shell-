@@ -5,7 +5,7 @@
 void print_last_bg(list* lista){
    if(lista->size>0){
       background l = lista->tail->data;
-      printf(YELLOW_F"[%d]  %d\n" RESET_COLOR,l.number,l.pid);
+      printf(YELLOW_F"[%d]  %d\n" RESET_COLOR,l.id,l.gpid);
    }
 }
 
@@ -14,7 +14,7 @@ void print_jobs(list* lista){
    while (n!=NULL)
    {
       background bg =n->data; 
-      printf(YELLOW_F"[%d]  %d   %s\n" RESET_COLOR,bg.number,bg.pid,bg.name);
+      printf(YELLOW_F"[%d]  %d   %s\n" RESET_COLOR,bg.id,bg.gpid,bg.name);
       n=n->next;
    }
 
@@ -27,14 +27,14 @@ void append(list* lista, background data)
    
    if(lista->size == 0)
    {
-      n->data.number=1;
+      n->data.id=1;
       n->prev = NULL;
       n->next = NULL;
       lista->head = lista->tail = n;
    }
    else
    {
-      n->data.number=lista->tail->data.number + 1;
+      n->data.id=lista->tail->data.id + 1;
       n->next = NULL;  
       n->prev = lista->tail;
       lista->tail->next = n;
@@ -112,16 +112,14 @@ background get(list* lista,int index)
    return getnode(lista,index)->data;     
 }
 
-
-int remove_number(list* lista,int number){
+void remove_number(list* lista,int number){
    node* n = lista->head;
    int index=0;
    while (n!=NULL)
    {
-      if(n->data.number==number){
-         background bg=get(lista,index);
+      if(n->data.id==number){
          removeat(lista,index);
-         return bg.gpid;
+         
       }
       else
       {
@@ -131,7 +129,29 @@ int remove_number(list* lista,int number){
       
    }
 
-   return -1;
+   
+   
+}
+
+background bg_job(list* lista,int number){
+   node* n = lista->head;
+   int index=0;
+   while (n!=NULL)
+   {
+      if(n->data.id==number){
+         background bg=get(lista,index);
+         //removeat(lista,index);
+         return bg;
+      }
+      else
+      {
+         index++;
+         n=n->next;
+      }
+      
+   }
+
+   
    
 }
 void remove_pid(list* lista,int pid){
@@ -139,7 +159,7 @@ void remove_pid(list* lista,int pid){
    int index=0;
    while (n!=NULL)
    {
-      if(n->data.pid==pid){
+      if(n->data.gpid==pid){
          removeat(lista,index);
          return;
       }

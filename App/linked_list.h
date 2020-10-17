@@ -12,10 +12,10 @@
 
 
 typedef struct background{
-    int pid;
+    int id;
     int gpid;
     STRING name;
-    int number;
+    int size;
     
 }background;
 
@@ -46,7 +46,8 @@ node* getnode(list* _lista,int index);
 void removeat(list* list,int index);
 void print_last_bg(list* lista);
 void print_jobs(list* lista);
-int remove_number(list* lista,int number);
+background bg_job(list* lista,int number);
+void remove_number(list* lista,int number);
 void remove_pid(list* lista,int pid);
 #endif // !LINKEDLISTH
 

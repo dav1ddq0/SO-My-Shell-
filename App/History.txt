@@ -1,10 +1,10 @@
-firefox &
-jobs
 fg 1
+ls -l
+ls -l &
+
+ls -l &
 ls
-cd ..
-cd ..
-ls
-ls -l 
-history
-again 8 | head -2
+
+windscribe connect &
+jobs
+fg 3

@@ -20,7 +20,7 @@ void printHelpMain(){
     printf(KEYWORDCOLOR,"multi-pipe:"," nuestro shell admite más de una tubería \npor ejemplo :ls -l | head -2 | wc -l es válido\n");
     printf(KEYWORDCOLOR,"history:","El shell tiene un historial de comandos que permite imprimir los últimos 10 comandos\nSe guarda permanentemente en el archivo History.txt\n");
     printf(KEYWORDCOLOR,"chain:"," Nuestro shell admite los operadores ; && ||\npor ejemplo :ls  && ls > a.txt ; ls -l || ls -l | head-2 && | wc -l es válido\n");
-    
+    printf(KEYWORDCOLOR,"ctrl+c:","Nuestro shell no se muere cuando das  ctrl+c y si estoy ejecutando un proceso hijo y decide ignorar el ctrl+c\nla segunda vez le mando un SIGKILL para que termine de ejecutarse\n");
     printf("Comandos built-in:\n");
     printf(BUILTINCOLOR,"help",":para info del proyecto vea help \n");
     printf(BUILTINCOLOR,"cd",":para info vea help cd\n");

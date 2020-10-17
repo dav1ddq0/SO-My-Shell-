@@ -7,7 +7,7 @@ int bg;
 
 
 int running_bg(STRING line){
-    //STRING copy=strcpy(copy,line);
+    
     size_t len =strlen(line);
     if(len>=2){
         for(int i = len -1;i>=0;i--){
@@ -202,7 +202,15 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     //fd[1] will be the fd for the write end of pipe.
     //Returns : 0 on Success.
     //-1 on error.ls;
-
+    if(is_bg_com && gpid==-1){
+        background b1;
+        b1.size=0;
+        b1.name=malloc(sizeof(current_line));
+        printf("%s",current_line);
+        strcpy(b1.name,current_line);  
+        append(jobsList,b1);
+        print_last_bg(jobsList);
+    }
     canCtrlCPid=0;
     
     int fds[2];
@@ -224,19 +232,40 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                 if(command.cant_args!=2){
                     perror("fg");
                 }
-                else
-                {
+                else{
+                
+                    
                     int numb=atoi(command.args[1]);
-                    int fg_gpid=remove_number(jobsList,numb);
-                    wait_bg_pid=fg_gpid;
-                    if(fg_gpid!=-1){
-                        int status;                   
-                        siginfo_t sig;
-                        waitid(P_PGID,fg_gpid, &sig, WEXITED);
-                        //waitpid(fg_gpid,&status,WNOHANG);
-                        }
+                    background b=bg_job(jobsList,numb);
+                    int bgpgid=b.gpid;
+                    child_pid=bgpgid;
+                    int size=0;
+                    int status=0;
+                    remove_number(jobsList,numb);
+                    printf("%d %d\n",bgpgid,b.size);
+                    do{
+                        
+                        // waitpid(-bgpgid,&status,WEXITED);
+                        waitid(P_PGID,bgpgid, &status, WEXITED);
+                        size++;
                     }
+                    while (size <b.size);
+                    
+                    // signal(SIGTTOU,SIG_IGN);
+                    // tcsetpgrp(0,getpid());
+                    // signal(SIGTTOU,SIG_DFL);
+                    // if(fg_gpid!=-1){
+                    //     int status;                   
+                    //     siginfo_t sig;
+                    //     for(int i=0;i<sizePIDs;i++){
+                    //         waitid(P_PGID,fg_gpid, &sig, WEXITED);
+                    //     }
+                        
+                    //     //waitpid(fg_gpid,&status,WNOHANG);
+                    //     }
+                    // }
                 }
+    }
     else if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
 
 		        close(fds[1]);
@@ -262,17 +291,17 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         int pid = fork();// fork  0 child 1 parent
         
 	    if (!pid) { //  if Child
-        //signal(SIGINT,InterruptHandler);
+
             if(is_bg_com){
                 if(gpid==-1){
-                    setpgrp();
+                    setpgrp();// lo mismo que setpgid(0,0)
                     gpid=pid;
                 }
                 else{
                     setpgid(pid,gpid);
                 }
             }
-		    close(fds[0]);//
+		    close(fds[0]);
             int fd_read_out = _fd; 
             int fd_write_in = fds[1];
 
@@ -379,41 +408,44 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     }
 
                 }
-                // exit(1);
+                exit(EXIT_FAILURE);
+                
                 
 	    }
 	    else {
+            
             if(is_bg_com){
-                background b1;
-                b1.name=command.args[0];
-                //los procesos foreground. Lo que hacemos es asginar un id de grupo a los commandos 
+                jobsList->tail->data.size++;            
+                //los procesos background. Lo que hacemos es asignnar un id de grupo a los commandos 
                 //de la misma linea con la función setpgid
                 if(gpid ==-1){
+                    jobsList->tail->data.size++;
                     setpgid(pid,pid);
                     gpid=pid;
-
+                    jobsList->tail->data.gpid=pid;
                 }
                 else{
                     setpgid(pid,gpid);
+
                 }
                 
-                b1.pid=pid;
-                b1.gpid=gpid;
-                b1.name=malloc(sizeof(current_line));
-                strcpy(b1.name,current_line);  
-                append(jobsList,b1);
-                print_last_bg(jobsList);
                 
+               
             }
             else{
+                    
+                    
                     child_pid=pid;
                     signal(SIGINT,InterruptHandler);
                     // variable que va a guardar el status que devuelva wait
                     int status=0;
                     // take one argument status and returns 
                     // a process ID of dead children.
+                    // tcsetpgrp(0,pid);
                     wait(&status);
-
+                    // signal(SIGTTOU,SIG_IGN);
+                    // tcsetpgrp(0,getpid());
+                    // signal(SIGTTOU,SIG_DFL);
 
                     *exit_status=status;
 
@@ -477,7 +509,7 @@ void show_history(){
 void update_history(STRING line){
     chdir(history_wd);
     if(cfileexists("History.txt")){ // En caso de que alguien lo borre
-       // printf("VERDADERAMENTE EXISTE PENDEJO\n");
+
         if(first_time_history_checked){ //Para saber cuantos elementos hay guardados en el history (solo e ejecuta la primera vez q se ejecuta el shell)
             history_size = history_count();
             first_time_history_checked = 0;
@@ -601,18 +633,14 @@ void exec_history_command(int index,list* jobsList){
 
 void InterruptHandler(int signum){  
     canCtrlCPid++;
-    printf("%d %d\n",child_pid,ppid);
     
     if(child_pid!=-1 && child_pid!=ppid){
         if(canCtrlCPid==2){
             printf("processs killed\n");
             kill(child_pid,SIGKILL);
+            canCtrlCPid=0;
         }
-        else
-        {
-            
-            printf("");    
-        }
+        
         
         
     }

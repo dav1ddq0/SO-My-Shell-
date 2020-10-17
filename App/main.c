@@ -56,7 +56,7 @@ int main(int arc,char** argv){
         
         update_history(line);
         calling_execute(line,&bg);
-        
+        sizePIDs=0;
     }
     free(line);
 }
@@ -80,12 +80,11 @@ void init(){
     history_wd=malloc(sizeof(char)*cwd_buffer);
     getcwd(history_wd,cwd_buffer);
     line=malloc(sizeof(char)*line_buffer);
-    // signal(SIGINT, handler_SIGINT);
-    signal(SIGCHLD,handler_BG);
-    // signal(SIGUSR1,padre);
+    signal(SIGINT, InterruptHandler);
     init_list(&bg);
     canCtrlCPid=0;
     built_in=FALSE;
+    sizePIDs=0;
     ppid=getpid();
 }
 

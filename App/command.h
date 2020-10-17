@@ -56,6 +56,7 @@ int wait_bg_pid;
 int canCtrlCPid; 
 int ppid;
 bool built_in;
+int sizePIDs;
 static int SIGUSR1_pid = 0;
 
 #endif
