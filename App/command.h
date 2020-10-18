@@ -48,6 +48,7 @@ int cfileexists(char* filename);
 
 void exec_history_command(int index,list* _jobs);
 void InterruptHandler(int _signum);
+void InterruptHandlerGPID(int _signum);
 int child_pid;
 int is_bg_com;
 int gpid;
@@ -58,5 +59,4 @@ int ppid;
 bool built_in;
 int sizePIDs;
 static int SIGUSR1_pid = 0;
-
 #endif

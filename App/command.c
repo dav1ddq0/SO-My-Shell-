@@ -206,7 +206,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         background b1;
         b1.size=0;
         b1.name=malloc(sizeof(current_line));
-        printf("%s",current_line);
+        // printf("%s",current_line);
         strcpy(b1.name,current_line);  
         append(jobsList,b1);
         print_last_bg(jobsList);
@@ -229,7 +229,25 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         }
     else if (!strcmp(command.args[0],"fg")){
                 close(fds[1]);
-                if(command.cant_args!=2){
+                if(command.cant_args==1){
+                    background b =jobsList->tail->data;
+                    int numb =b.id;
+                    int bgpgid=b.gpid;
+                    child_pid=bgpgid;
+                    int size=b.size;
+                    int status=0;
+                    signal(SIGINT,InterruptHandlerGPID);                 
+                    
+                    do{
+                        size--;
+                        waitid(P_PGID,bgpgid, &status, WEXITED);
+                    }
+                    while (size);
+                    remove_number(jobsList,numb);
+                    child_pid=getpid();
+                    signal(SIGINT,InterruptHandler);
+                } 
+                else if(command.cant_args!=2){
                     perror("fg");
                 }
                 else{
@@ -239,31 +257,19 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     background b=bg_job(jobsList,numb);
                     int bgpgid=b.gpid;
                     child_pid=bgpgid;
-                    int size=0;
+                    int size=b.size;
                     int status=0;
-                    remove_number(jobsList,numb);
-                    printf("%d %d\n",bgpgid,b.size);
-                    do{
-                        
-                        // waitpid(-bgpgid,&status,WEXITED);
-                        waitid(P_PGID,bgpgid, &status, WEXITED);
-                        size++;
-                    }
-                    while (size <b.size);
+                    signal(SIGINT,InterruptHandlerGPID);                 
                     
-                    // signal(SIGTTOU,SIG_IGN);
-                    // tcsetpgrp(0,getpid());
-                    // signal(SIGTTOU,SIG_DFL);
-                    // if(fg_gpid!=-1){
-                    //     int status;                   
-                    //     siginfo_t sig;
-                    //     for(int i=0;i<sizePIDs;i++){
-                    //         waitid(P_PGID,fg_gpid, &sig, WEXITED);
-                    //     }
-                        
-                    //     //waitpid(fg_gpid,&status,WNOHANG);
-                    //     }
-                    // }
+                    do{
+                        size--;
+                        waitid(P_PGID,bgpgid, &status, WEXITED);
+                    }
+                    while (size);
+                    remove_number(jobsList,numb);
+                    child_pid=getpid();
+                    signal(SIGINT,InterruptHandler);                
+                    
                 }
     }
     else if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
@@ -378,7 +384,10 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     exit(EXIT_SUCCESS);
                 }
                 else if (command.cant_args ==2){
-                    printf("\n");
+                    if(!strcmp(command.args[1], "ctrl+c")){
+                        printHelp(1);
+                        exit(EXIT_SUCCESS);
+                    }
                 }
                 else{
                     perror("help:to many arguments\n");
@@ -419,7 +428,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                 //los procesos background. Lo que hacemos es asignnar un id de grupo a los commandos 
                 //de la misma linea con la función setpgid
                 if(gpid ==-1){
-                    jobsList->tail->data.size++;
+                    
                     setpgid(pid,pid);
                     gpid=pid;
                     jobsList->tail->data.gpid=pid;
@@ -630,13 +639,29 @@ void exec_history_command(int index,list* jobsList){
     else printf("Again argument not in range\n");
 }
 
-
+void InterruptHandlerGPID(int _signum){
+    canCtrlCPid++;
+    
+    if(child_pid!=-1 && child_pid!=ppid){
+        if(canCtrlCPid==1){
+            kill(-child_pid,SIGINT);
+        }
+        if(canCtrlCPid==2){
+            printf("group process killed\n");
+            kill(-child_pid,SIGKILL);
+            canCtrlCPid=0;
+        }
+        
+        
+        
+    }
+}
 void InterruptHandler(int signum){  
     canCtrlCPid++;
     
     if(child_pid!=-1 && child_pid!=ppid){
         if(canCtrlCPid==2){
-            printf("processs killed\n");
+            printf("io io killed\n");
             kill(child_pid,SIGKILL);
             canCtrlCPid=0;
         }

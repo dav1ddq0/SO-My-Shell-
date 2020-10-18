@@ -1,10 +1,10 @@
-fg 1
-ls -l
-ls -l &
+fg
+fg
+fgfg
+fg
+fg
 
-ls -l &
-ls
-
-windscribe connect &
-jobs
-fg 3
+exit
+ping localhost &
+fg
+exit
