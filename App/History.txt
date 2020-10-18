@@ -1,10 +1,10 @@
-fg
-fg
-fgfg
-fg
-fg
-
+cat < a.txt >b.txt
+cat < a.txt >b.txt
+a.txt > cat
 exit
-ping localhost &
-fg
+> a.txt cat
+pwd
+> a.txt echo hola
+ls -l &
+
 exit

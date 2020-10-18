@@ -22,16 +22,14 @@ size_t size;
 void init();
 
 
-void handler_BG(int signum){
+void ZombiesHandler(int signum){
     list temp;
     int status;
-    int pid=waitpid(-1,&status,WNOHANG);
-    while (pid !=0 && pid != -1){
+    int pid=waitpid(-1,&status,WNOHANG);//collect all children processes zombies whose execution is completed but it still has an entry in the process table
+    while (pid > 0){
         remove_pid(&bg,pid);
         pid=waitpid(-1,&status,WNOHANG);
     }
-    
-    
 }
 
 int main(int arc,char** argv){
@@ -81,6 +79,7 @@ void init(){
     getcwd(history_wd,cwd_buffer);
     line=malloc(sizeof(char)*line_buffer);
     signal(SIGINT, InterruptHandler);
+    signal(SIGCHLD,ZombiesHandler);
     init_list(&bg);
     canCtrlCPid=0;
     built_in=FALSE;

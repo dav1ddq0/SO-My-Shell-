@@ -1,10 +1,1 @@
-1--rwxrw-r--ls -l | head -2
-2-ls -l | head -2 | head -2
-3-ls -l | head -2 | wc -l
-4-history | less
-5-history | less
-6-ls -l | less
-7-history | less
-8-history | less
-9-history > a.txt
-10-[32mdquesada@en1gma-7567[0m:[34m/home/dquesada/Downloads/Clone/shell/MyShell-DQJV/App[37m$ [0m
+hola
