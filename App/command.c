@@ -53,7 +53,7 @@ STRING concatStr(STRING str1,STRING str2){
     concat[concatPos]=NULL;
     return concat;
 }
-//parser para los casos que no puedo resolver con strtok ,|| y &&
+//parser for the cases that I can't solve with strtok, || Y &&
 STRING* parser (STRING chain,const char* separator){
     STRING* tokens =string_tokenizer(chain," ");
     size_t siz=2;
@@ -92,7 +92,7 @@ STRING* string_tokenizer(STRING line,const char* separator){
     STRING token;
     int index = 0;
     token = strtok(line, separator);// The first call to strtok must pass the C string to tokenize
-    while (token != NULL){   //Cuando no queden mas token strtok returns NULL lo que quiere decir que la linea fue parseada completamente en tokens
+    while (token != NULL){   //When there are no more tokens left strtok returns NULL which means that the line was completely parsed in tokens
 		
         if(index == siz) {
     		siz *=2;
@@ -130,7 +130,6 @@ STRING* parse_or(STRING line){
 }
 
 command* parse_line(STRING line){
-    //printf("%s",line);
     STRING* tokens = string_tokenizer(line,"|");
     int total = size; //, //i;
     int i;
@@ -145,12 +144,6 @@ command* parse_line(STRING line){
 	return commands;
     return NULL;
 
-}
-void hijo(int signum){
-    printf("\t\t¡InterruptHandler! ¿Qué haces?\n");
-    printf("\t\tFinal de ejecución de %d \n", getpid());
-    kill(getppid(), SIGUSR1);
-    exit(0);
 }
 
 void calling_execute(STRING line,list* jobsList){
@@ -206,7 +199,6 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         background b1;
         b1.size=0;
         b1.name=malloc(sizeof(current_line));
-        // printf("%s",current_line);
         strcpy(b1.name,current_line);  
         append(jobsList,b1);
         print_last_bg(jobsList);
@@ -221,7 +213,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
         fprintf(stderr, "Pipe failed.\n");
         return EXIT_FAILURE;
     }
-    if(!strcmp(command.args[0], "exit")) { //si se escribe el comando exit salir de la consola	
+    if(!strcmp(command.args[0], "exit")) { //if the exit command is typed exit the console	
             close(fds[0]); 
             close(fds[1]);
             exit(EXIT_SUCCESS);
@@ -272,19 +264,20 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     
                 }
     }
-    else if(!strcmp(command.args[0], "cd")) { //en caso que sea el comando cd
+    else if(!strcmp(command.args[0], "cd")) { //in case it is the cd command
 
 		        close(fds[1]);
-                if(command.cant_args != 2) { // si existen mas de 2 argumentos imprimir error 
+                if(command.cant_args != 2) { //if there are more than 2 arguments or cd only print error 
                     printf("bash: cd: to many arguments\n"); 
                     *exit_status=1;
                 } 
                 else if(chdir(command.args[1])) {            
                     perror("cd"); 
                     *exit_status=0;
-                } // si el chdir retorna error
+                } // if the chdir returns error
                 else{
-                    // exit(EXIT_SUCCESS);
+                    *exit_status=1;
+                    
                 }
             }
     else if(!strcmp(command.args[0],"true")){
@@ -312,7 +305,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             int fd_write_in = fds[1];
 
             STRING* process_result = malloc((command.cant_args+1)*sizeof(STRING)*sizeof(STRING));
-            //en caso que el proceso que va esta siendo ejecutado es el ultimo de la linea antes parseada
+            //in case the process that is being executed is the last of the line before parsed
             if(command.end_line){ 
                 close(fds[1]); 
                 fd_write_in = -1;                
@@ -323,7 +316,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     close(fd_write_in);
                     i++;
                     command.cant_args-=2;
-                    //0766 permiso de todo lectura escritura para usuario y grupo
+                    //0766 all read write permission for user and group
                     int fd_file =open(command.args[i],O_WRONLY|O_CREAT|O_TRUNC,0766);
                     fd_write_in=fd_file;  
                 }
@@ -388,6 +381,26 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                         printHelp(1);
                         exit(EXIT_SUCCESS);
                     }
+                    else if(!strcmp(command.args[1], "spaces")){
+                        printHelp(2);
+                        exit(EXIT_SUCCESS);
+                    }
+                    else if(!strcmp(command.args[1], "fg")){
+                        printHelp(3);
+                        exit(EXIT_SUCCESS);
+                    }
+                    else if(!strcmp(command.args[1], "background")){
+                        printHelp(4);
+                        exit(EXIT_SUCCESS);
+                    }
+                    else if(!strcmp(command.args[1], "cd")){
+                        printHelp(5);
+                        exit(EXIT_SUCCESS);
+                    }
+                    else if(!strcmp(command.args[1], "jobs")){
+                        printHelp(5);
+                        exit(EXIT_SUCCESS);
+                    }
                 }
                 else{
                     perror("help:to many arguments\n");
@@ -412,7 +425,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
 
                 else{
                     int res_execvp=execvp(process_result[0], process_result);
-                    if( res_execvp < 0) {//en caso que el sistema no pueda ejecutar ese comando 
+                    if( res_execvp < 0) {//in case the system cannot execute that command 
                         perror("execvp");
                     }
 
@@ -424,9 +437,8 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
 	    else {
             
             if(is_bg_com){
-                jobsList->tail->data.size++;            
-                //los procesos background. Lo que hacemos es asignnar un id de grupo a los commandos 
-                //de la misma linea con la función setpgid
+                jobsList->tail->data.size++;  
+                //What we do is assign a group id to the commands of the same line with the setpgid function          
                 if(gpid ==-1){
                     
                     setpgid(pid,pid);
@@ -446,15 +458,11 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     
                     child_pid=pid;
                     signal(SIGINT,InterruptHandler);
-                    // variable que va a guardar el status que devuelva wait
+                    //variable that will store the status that wait returns
                     int status=0;
-                    // take one argument status and returns 
-                    // a process ID of dead children.
-                    // tcsetpgrp(0,pid);
+                    
                     wait(&status);
-                    // signal(SIGTTOU,SIG_IGN);
-                    // tcsetpgrp(0,getpid());
-                    // signal(SIGTTOU,SIG_DFL);
+                    
 
                     *exit_status=status;
 
@@ -480,9 +488,9 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
 
 
 void show_history(){
-    // Simplemente leer de History.txt
+    // Simplemente leer de History
     chdir(history_wd);
-    int fd = open("History.txt",O_RDONLY);
+    int fd = open("History",O_RDONLY);
     char buf;
     int i = 49;
     const char hyphen = '-';
@@ -517,7 +525,7 @@ void show_history(){
 
 void update_history(STRING line){
     chdir(history_wd);
-    if(cfileexists("History.txt")){ // En caso de que alguien lo borre
+    if(cfileexists("History")){ //In case someone deletes it
 
         if(first_time_history_checked){ //Para saber cuantos elementos hay guardados en el history (solo e ejecuta la primera vez q se ejecuta el shell)
             history_size = history_count();
@@ -526,17 +534,15 @@ void update_history(STRING line){
     }
     else history_size = FALSE;
 
-   // printf("HISTORY CURRENT SIZE TOP --> %d\n",history_size);
     char* line_reader = line;
     int line_length = strlen(line);
 
-    //printf("ESTOY ACA\n");
-    //printf("LINE ---> %s",line);
+    
     int fd1;
     char buf1;
 
-    if(history_size < 10){ // Si hay menos de 10 commandos guardados en el history simplemente agregar/crear History.txt en caso de que no exista
-        fd1 = open("History.txt",O_WRONLY | O_APPEND | O_CREAT,0766);
+    if(history_size < 10){ // Si hay menos de 10 commandos guardados en el history simplemente agregar/crear History en caso de que no exista
+        fd1 = open("History",O_WRONLY | O_APPEND | O_CREAT,0766);
 
         for(int i = 0; i < line_length;i++,line_reader++){
             write(fd1,line_reader,1);
@@ -547,14 +553,14 @@ void update_history(STRING line){
     }
 
     else {  // Si hay 10 elementos esto es lo que se hace : 
-            // 1-Cambiarle el nombre de History.txt ---> Old_History.txt;                                               
-            // 2-Crear un nuevo txt que se llame History.txt :) ;
-            // 3-Con 2 filedescriptors leer de Old_History con uno de ellos y con el otro escribir en el recien creado History.txt
+            // 1-Cambiarle el nombre de History ---> Old_History;                                               
+            // 2-Crear un nuevo txt que se llame History :) ;
+            // 3-Con 2 filedescriptors leer de Old_History con uno de ellos y con el otro escribir en el recien creado History
             // los ultimos 9 commandos de Old_history + el actual commando 
             // 4-Borrar Old_History :D                                             
-        rename("History.txt","Old_History.txt");
-        fd1 = open("Old_History.txt",O_RDONLY);
-        int fd2 = open("History.txt",O_WRONLY | O_CREAT,0766);
+        rename("History","Old_History");
+        fd1 = open("Old_History",O_RDONLY);
+        int fd2 = open("History",O_WRONLY | O_CREAT,0766);
 
         while (read(fd1,&buf1,1)){ //Ignorar primer comando de la lista
             if(buf1 == '\n') break;
@@ -577,16 +583,15 @@ void update_history(STRING line){
 
         close(fd1);
         close(fd2);
-        remove("Old_History.txt"); // Eliminar Old_History.txt
+        remove("Old_History"); // Remove Old_History
     }
     chdir(current_working_directory);
-   // printf("HISTORY CURRENT SIZE BOTTOM--> %d\n",history_size);
 }
 
 int history_count(){
     int answer = 0;
 
-    int fd = open("History.txt",O_RDONLY);
+    int fd = open("History",O_RDONLY);
     char buf;
     if(fd != -1){
         while (read(fd, &buf, 1))
@@ -611,16 +616,14 @@ void exec_history_command(int index,list* jobsList){
         STRING history_line = history_reader;
 
         char buf;
-        int fd = open("History.txt",O_RDONLY);
+        int fd = open("History",O_RDONLY);
 
         int i = 1;
         
         while (read(fd,&buf,1)){
 
             if(i == index){
-                //printf("buf char value is ---> %c\n",buf);
                 *history_reader = buf;
-                //printf("history_reader char value is ---> %c\n",*history_reader);
                 history_reader++;
                 if(buf == '\n')
                     break;
@@ -628,7 +631,7 @@ void exec_history_command(int index,list* jobsList){
             }
             if(buf == '\n'){
                 i++;
-                //printf("I++ anormal\n");
+                
             } 
         }
         close(fd);

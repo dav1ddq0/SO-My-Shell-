@@ -11,5 +11,10 @@
 #define HELPIASCII CYAN_F "%s" RESET_COLOR 
 void printHelpMain();
 void printCTRLC();
+void printSpaces();
+void printFG();
+void printBG();
+void printCD();
+void printJobs();
 void printHelp(int _option);
 #endif

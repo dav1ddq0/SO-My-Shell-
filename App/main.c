@@ -21,11 +21,11 @@ size_t size;
 
 void init();
 
-
+//collect all children processes zombies 
 void ZombiesHandler(int signum){
     list temp;
     int status;
-    int pid=waitpid(-1,&status,WNOHANG);//collect all children processes zombies whose execution is completed but it still has an entry in the process table
+    int pid=waitpid(-1,&status,WNOHANG);// whose execution is completed but it still has an entry in the process table
     while (pid > 0){
         remove_pid(&bg,pid);
         pid=waitpid(-1,&status,WNOHANG);

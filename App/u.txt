@@ -1,0 +1,30 @@
+[36m'||         '||`
+[0m[36m ||          ||
+[0m[36m ||''|,.|''|,||'||''|,
+[0m[36m ||  ||||..|||| ||  ||
+[0m[36m.||  ||`|....||.||..|'
+[0m[36m                ||   
+[0m[36m               .||    
+[0mIntegrantes:David Orlando De Quesada Oliva y Javier Dominguez
+Funcionalidades que implementamos:
+[33mbasic:[0mcontempla los puntos del 1 al 8 que son las funcionalidades básicas del shell
+[33mmulti-pipe:[0m nuestro shell admite más de una tubería 
+por ejemplo :ls -l | head -2 | wc -l es válido
+[33mspaces:[0mAdmite cualquier cantidad de espacios entre los comandos y parámetros 
+ls  -l y ls         -l   | head      -2 son válidos
+[33mhistory:[0mEl shell tiene un historial de comandos que permite imprimir los últimos 10 comandos
+Se guarda permanentemente en el archivo History.txt
+[33mchain:[0m Nuestro shell admite los operadores ; && ||
+por ejemplo :ls  && ls > a.txt ; ls -l || ls -l | head-2 && | wc -l es válido
+[33mctrl+c:[0mNuestro shell no se muere cuando das  ctrl+c y si estoy ejecutando un proceso hijo y decide ignorar el ctrl+c
+la segunda vez le mando un SIGKILL para que termine de ejecutarse
+Comandos built-in:
+[32mhelp[0m:para info del proyecto vea help 
+[32mcd[0m:para info vea help cd
+[32mtrue[0m:para info vea help true
+[32mfalse[0m:para info vea help false
+Idea general de como funciona el help:
+Lo primero que hago es incializar las variables que uso y printar el logo de mi shell
+Printeo en mi prompt el user login hostname y nombre del directorio actual donde 
+se esta ejecutando el shell simular al prompt de bash
+ Despues leo la línea y paso a parsear
