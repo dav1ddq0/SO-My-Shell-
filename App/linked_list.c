@@ -140,7 +140,6 @@ background bg_job(list* lista,int number){
    {
       if(n->data.id==number){
          background bg=get(lista,index);
-         //removeat(lista,index);
          return bg;
       }
       else

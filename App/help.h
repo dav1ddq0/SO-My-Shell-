@@ -16,5 +16,6 @@ void printFG();
 void printBG();
 void printCD();
 void printJobs();
+void printHistory();
 void printHelp(int _option);
 #endif

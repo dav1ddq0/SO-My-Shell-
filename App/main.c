@@ -34,7 +34,7 @@ void ZombiesHandler(int signum){
 
 int main(int arc,char** argv){
     init();
-    child_pid=-1;
+    current_pid=-1;
     
     
     while (TRUE){
@@ -82,7 +82,6 @@ void init(){
     signal(SIGCHLD,ZombiesHandler);
     init_list(&bg);
     canCtrlCPid=0;
-    built_in=FALSE;
     sizePIDs=0;
     ppid=getpid();
 }

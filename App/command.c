@@ -207,7 +207,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
     
     int fds[2];
     
-	//pipe(fds);
+	
      /* Create the pipe. */
     if (pipe (fds)){
         fprintf(stderr, "Pipe failed.\n");
@@ -225,7 +225,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     background b =jobsList->tail->data;
                     int numb =b.id;
                     int bgpgid=b.gpid;
-                    child_pid=bgpgid;
+                    current_pid=bgpgid;
                     int size=b.size;
                     int status=0;
                     signal(SIGINT,InterruptHandlerGPID);                 
@@ -236,7 +236,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     }
                     while (size);
                     remove_number(jobsList,numb);
-                    child_pid=getpid();
+                    current_pid=getpid();
                     signal(SIGINT,InterruptHandler);
                 } 
                 else if(command.cant_args!=2){
@@ -248,7 +248,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     int numb=atoi(command.args[1]);
                     background b=bg_job(jobsList,numb);
                     int bgpgid=b.gpid;
-                    child_pid=bgpgid;
+                    current_pid=bgpgid;
                     int size=b.size;
                     int status=0;
                     signal(SIGINT,InterruptHandlerGPID);                 
@@ -259,7 +259,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                     }
                     while (size);
                     remove_number(jobsList,numb);
-                    child_pid=getpid();
+                    current_pid=getpid();
                     signal(SIGINT,InterruptHandler);                
                     
                 }
@@ -398,9 +398,22 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                         exit(EXIT_SUCCESS);
                     }
                     else if(!strcmp(command.args[1], "jobs")){
-                        printHelp(5);
+                        printHelp(6);
                         exit(EXIT_SUCCESS);
                     }
+                    else if(!strcmp(command.args[1], "history")){
+                        printHelp(7);
+                        exit(EXIT_SUCCESS);
+                    }
+                    else if(!strcmp(command.args[1], "again")){
+                        printHelp(8);
+                        exit(EXIT_SUCCESS);
+                    }
+                    else{
+                        perror("help:invalid argument\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    
                 }
                 else{
                     perror("help:to many arguments\n");
@@ -435,7 +448,7 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
                 
 	    }
 	    else {
-            
+            current_pid=pid;
             if(is_bg_com){
                 jobsList->tail->data.size++;  
                 //What we do is assign a group id to the commands of the same line with the setpgid function          
@@ -456,8 +469,6 @@ int execute_command(command command,int _fd,int *exit_status,list* jobsList){
             else{
                     
                     
-                    child_pid=pid;
-                    signal(SIGINT,InterruptHandler);
                     //variable that will store the status that wait returns
                     int status=0;
                     
@@ -527,7 +538,7 @@ void update_history(STRING line){
     chdir(history_wd);
     if(cfileexists("History")){ //In case someone deletes it
 
-        if(first_time_history_checked){ //Para saber cuantos elementos hay guardados en el history (solo e ejecuta la primera vez q se ejecuta el shell)
+        if(first_time_history_checked){ //To know how many elements are stored in the history (only run the first time the shell is run)
             history_size = history_count();
             first_time_history_checked = 0;
         }
@@ -541,42 +552,39 @@ void update_history(STRING line){
     int fd1;
     char buf1;
 
-    if(history_size < 10){ // Si hay menos de 10 commandos guardados en el history simplemente agregar/crear History en caso de que no exista
+    if(history_size < 10){ // If there are less than 10 commands saved in history simply add / create History in case it does not exist
         fd1 = open("History",O_WRONLY | O_APPEND | O_CREAT,0766);
 
         for(int i = 0; i < line_length;i++,line_reader++){
             write(fd1,line_reader,1);
-           // printf("%d\n",i);
         }
         close(fd1);
         history_size++;
     }
 
-    else {  // Si hay 10 elementos esto es lo que se hace : 
-            // 1-Cambiarle el nombre de History ---> Old_History;                                               
-            // 2-Crear un nuevo txt que se llame History :) ;
-            // 3-Con 2 filedescriptors leer de Old_History con uno de ellos y con el otro escribir en el recien creado History
-            // los ultimos 9 commandos de Old_history + el actual commando 
-            // 4-Borrar Old_History :D                                             
+    else {  // If there are 10 elements this is what is done : 
+            // 1-Rename it History ---> Old_History;                                               
+            // 2-Create a new file called History :) ;
+            // 3-With 2 filedescriptors read from Old_History with one of them and with the other write to the newly created History
+            // the last 9 commands of Old_history + the current command 
+            // 4-Clear Old_History :D                                             
         rename("History","Old_History");
         fd1 = open("Old_History",O_RDONLY);
         int fd2 = open("History",O_WRONLY | O_CREAT,0766);
 
-        while (read(fd1,&buf1,1)){ //Ignorar primer comando de la lista
+        while (read(fd1,&buf1,1)){ //Ignore first command in the list
             if(buf1 == '\n') break;
-           // printf("Ignorar primer comando de la lista\n");
+
         } 
             
 
-        while (read(fd1,&buf1,1)){ //Copiar los 9 ultimos para el nuevo .txt
+        while (read(fd1,&buf1,1)){ //Copy the last 9 to the new file
             write(fd2,&buf1,1);
-           // printf("Copiar los k ultimos para el nuevo .txt\n");
         }
 
         int curr_char = 0;
-        while(curr_char < line_length){ //Agregar ultimo comando al txt
+        while(curr_char < line_length){ //Add last command to file
             write(fd2,line_reader,1);
-           // printf("Agregar ultimo comando al txt");
             line_reader++;
             curr_char++;
         }
@@ -642,16 +650,17 @@ void exec_history_command(int index,list* jobsList){
     else printf("Again argument not in range\n");
 }
 
+//Handler for SIGINT of processes in bg
 void InterruptHandlerGPID(int _signum){
     canCtrlCPid++;
     
-    if(child_pid!=-1 && child_pid!=ppid){
+    if(current_pid!=-1 && current_pid!=ppid){
         if(canCtrlCPid==1){
-            kill(-child_pid,SIGINT);
+            kill(-current_pid,SIGINT);
         }
         if(canCtrlCPid==2){
             printf("group process killed\n");
-            kill(-child_pid,SIGKILL);
+            kill(-current_pid,SIGKILL);
             canCtrlCPid=0;
         }
         
@@ -659,13 +668,14 @@ void InterruptHandlerGPID(int _signum){
         
     }
 }
+//Handler for SIGINT
 void InterruptHandler(int signum){  
     canCtrlCPid++;
     
-    if(child_pid!=-1 && child_pid!=ppid){
+    if(current_pid!=-1 && current_pid!=ppid){
         if(canCtrlCPid==2){
-            printf("io io killed\n");
-            kill(child_pid,SIGKILL);
+            printf("killed\n");
+            kill(current_pid,SIGKILL);
             canCtrlCPid=0;
         }
         
